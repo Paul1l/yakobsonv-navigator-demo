@@ -465,7 +465,8 @@
 
 @media (min-width: 960px) {
   .showcase {
-    --orbit: clamp(320px, calc(100svh - var(--header-h) - 400px), 440px);
+    /* 440 = подсказка, зазоры, карточка и запас ~40 px (в т. ч. под полосу «Демо» в демо-сборке): на 1440×900 карточка в первом экране */
+    --orbit: clamp(320px, calc(100svh - var(--header-h) - 440px), 440px);
   }
 }
 
