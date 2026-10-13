@@ -3,7 +3,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgb(244 243 239 / 0.8);
+  background: rgb(var(--c-bg-rgb) / 0.8);
   -webkit-backdrop-filter: saturate(1.4) blur(14px);
   backdrop-filter: saturate(1.4) blur(14px);
   border-bottom: 1px solid transparent;
@@ -11,7 +11,7 @@
 }
 
 .site-header[data-elevated="true"] {
-  background: rgb(244 243 239 / 0.92);
+  background: rgb(var(--c-bg-rgb) / 0.92);
   border-bottom-color: var(--c-border);
 }
 
@@ -62,7 +62,7 @@
 
 .site-nav a:hover {
   color: var(--c-text);
-  background: rgb(40 39 32 / 0.05);
+  background: rgb(var(--c-ink-rgb) / 0.05);
 }
 
 .site-header__cta {
@@ -71,6 +71,31 @@
 
 .burger {
   margin-left: auto;
+}
+
+/* Переключатель темы: телефон — справа, рядом с бургером; десктоп — между меню и «Обсудить проект».
+   В светлой видна луна (включить тёмную), в тёмной — солнце */
+.theme-toggle {
+  margin-left: auto;
+}
+
+.theme-toggle ~ .burger {
+  margin-left: -8px; /* 8px между двумя круглыми кнопками вместо общего gap 16px */
+}
+
+.theme-toggle__icon {
+  display: grid;
+  grid-area: 1 / 1;
+  place-items: center;
+}
+
+.theme-toggle__icon--sun,
+:root[data-theme="dark"] .theme-toggle__icon--moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle__icon--sun {
+  display: grid;
 }
 
 @media (min-width: 900px) {
@@ -83,8 +108,23 @@
     margin-left: 10px;
   }
 
+  .theme-toggle {
+    margin-left: 6px;
+  }
+
+  .theme-toggle + .site-header__cta {
+    margin-left: 0;
+  }
+
   .burger {
     display: none;
+  }
+}
+
+/* 900–1079: логотип, четыре пункта, переключатель и кнопка в одной строке — пункты чуть плотнее */
+@media (min-width: 900px) and (max-width: 1079px) {
+  .site-nav a {
+    padding-inline: 12px;
   }
 }
 
@@ -98,15 +138,16 @@
   overflow: visible;
 }
 
+/* У ::backdrop в старых браузерах нет наследования переменных — запасные значения светлой темы */
 .drawer::backdrop,
 .modal::backdrop {
-  background: rgb(40 39 32 / 0);
+  background: rgb(var(--c-shadow-rgb, 40 39 32) / 0);
   transition: background-color var(--dur) var(--ease);
 }
 
 .drawer.is-open::backdrop,
 .modal.is-open::backdrop {
-  background: rgb(40 39 32 / 0.34);
+  background: var(--c-scrim, rgb(40 39 32 / 0.34));
 }
 
 .drawer {
@@ -127,7 +168,7 @@
   overscroll-behavior: contain;
   background: var(--c-surface);
   border-left: 1px solid var(--c-border);
-  box-shadow: -24px 0 60px -30px rgb(40 39 32 / 0.4);
+  box-shadow: -24px 0 60px -30px rgb(var(--c-shadow-rgb) / 0.4);
   transform: translateX(100%);
   transition: transform 0.32s var(--ease);
 }
@@ -167,6 +208,69 @@
   color: var(--c-accent);
 }
 
+/* Тема в меню: строка во всю ширину под главной кнопкой, легче её по весу.
+   Справа — переключатель-индикатор; состояние для вспомогательных технологий — aria-pressed */
+.drawer__theme {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  margin-top: -12px; /* ближе к «Обсудить проект»: одна группа действий */
+  padding: 0 14px 0 20px;
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--c-text);
+  font-size: 0.97rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.drawer__theme:active {
+  background: rgb(var(--c-ink-rgb) / 0.05);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .drawer__theme:hover {
+    border-color: var(--c-border-input);
+  }
+}
+
+.drawer__theme-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--c-accent);
+}
+
+.drawer__theme-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.drawer__theme::after {
+  content: "";
+  flex: none;
+  width: 42px;
+  height: 24px;
+  margin-left: auto;
+  border: 1px solid var(--c-border-input);
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle at 11px 50%, var(--c-text-2) 0 7px, transparent 7.5px);
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.drawer__theme[aria-pressed="true"]::after {
+  border-color: var(--c-btn);
+  background:
+    radial-gradient(circle at calc(100% - 11px) 50%, var(--c-btn-text) 0 7px, transparent 7.5px)
+    var(--c-btn);
+}
+
 .drawer__contacts {
   display: grid;
   gap: 4px;
@@ -199,7 +303,7 @@
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-card);
-  box-shadow: 0 40px 90px -40px rgb(40 39 32 / 0.55);
+  box-shadow: 0 40px 90px -40px rgb(var(--c-shadow-rgb) / 0.55);
   opacity: 0;
   transform: translateY(14px) scale(0.985);
   transition: opacity 0.26s var(--ease), transform 0.3s var(--ease);
@@ -354,7 +458,7 @@
   z-index: 1;
   padding: 3px 8px;
   border-radius: var(--radius-pill);
-  background: rgb(244 243 239 / 0.78);
+  background: rgb(var(--c-bg-rgb) / 0.78);
   color: var(--c-text-2);
   font-size: 0.68rem;
   font-weight: 600;
@@ -385,7 +489,7 @@
   position: absolute;
   right: 6%;
   bottom: 6%;
-  background: rgb(252 251 248 / 0.86);
+  background: rgb(var(--c-surface-rgb) / 0.86);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
@@ -393,6 +497,38 @@
 .scene__toggle svg {
   width: 16px;
   height: 16px;
+}
+
+/* ================= Ambient scene (фон страницы) =================
+   Прямой потомок body: z-index -1 кладёт холст над фоном документа (фон body), но под содержимым.
+   Секции прозрачные — кольцо видно между карточками; карточки, поля и шапка непрозрачны — текст на них
+   читается без помех. Видимость ставит JS (data-visible): пока на экране своя сцена первого экрана — скрыт */
+.ambient-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+
+.ambient-scene[data-visible="true"] {
+  opacity: var(--ambient-opacity);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-scene {
+    transition: none;
+  }
+}
+
+@media print {
+  .ambient-scene {
+    display: none;
+  }
 }
 
 /* ================= Statement ================= */
@@ -478,7 +614,7 @@
 @media (hover: hover) and (pointer: fine) {
   .solution-card:hover {
     transform: translateY(-2px);
-    border-color: rgb(162 129 75 / 0.45);
+    border-color: rgb(var(--c-accent-rgb) / 0.45);
   }
 }
 
@@ -552,7 +688,7 @@
   display: grid;
   gap: 28px;
   padding: clamp(22px, 3vw, 36px);
-  background: linear-gradient(180deg, #fffefb, var(--c-surface));
+  background: linear-gradient(180deg, var(--c-panel-top), var(--c-surface));
   animation: panel-in 0.36s var(--ease);
 }
 
@@ -651,7 +787,7 @@
   align-items: center;
   padding: 4px 11px;
   border-radius: var(--radius-pill);
-  background: rgb(40 39 32 / 0.055);
+  background: rgb(var(--c-ink-rgb) / 0.055);
   color: var(--c-text-2);
   font-size: 0.82rem;
   line-height: 1.4;
@@ -701,7 +837,7 @@
 .bar__track {
   height: 8px;
   border-radius: var(--radius-pill);
-  background: rgb(40 39 32 / 0.06);
+  background: rgb(var(--c-ink-rgb) / 0.06);
   overflow: hidden;
 }
 
@@ -904,7 +1040,7 @@
     padding: 20px;
     border-bottom: 0;
     border-right: 1px solid var(--c-border);
-    background: rgb(244 243 239 / 0.5);
+    background: rgb(var(--c-bg-rgb) / 0.5);
   }
 }
 
@@ -955,7 +1091,7 @@
   background: var(--c-surface);
   color: var(--c-text);
   font-weight: 600;
-  box-shadow: 0 6px 16px -12px rgb(40 39 32 / 0.4);
+  box-shadow: 0 6px 16px -12px rgb(var(--c-shadow-rgb) / 0.4);
 }
 
 .tab__count {
@@ -965,7 +1101,7 @@
   height: 22px;
   padding: 0 7px;
   border-radius: var(--radius-pill);
-  background: rgb(40 39 32 / 0.07);
+  background: rgb(var(--c-ink-rgb) / 0.07);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -1029,7 +1165,7 @@
 .task[data-status="done"] .task__mark {
   border-color: var(--c-teal);
   background: var(--c-teal);
-  color: #fff;
+  color: var(--c-on-teal);
 }
 
 .task__title {
@@ -1040,7 +1176,7 @@
 .task[data-status="done"] .task__title {
   color: var(--c-text-2);
   text-decoration: line-through;
-  text-decoration-color: rgb(40 39 32 / 0.35);
+  text-decoration-color: rgb(var(--c-ink-rgb) / 0.35);
 }
 
 .task__meta {
@@ -1256,7 +1392,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .channel:hover {
-    border-color: rgb(162 129 75 / 0.55);
+    border-color: rgb(var(--c-accent-rgb) / 0.55);
     transform: translateY(-1px);
   }
 }
@@ -1338,17 +1474,22 @@ legend.field__label {
 }
 
 .input::placeholder {
-  color: #716e63;
+  color: var(--c-placeholder);
 }
 
 .input:focus-visible {
   outline: none;
   border-color: var(--c-text);
-  box-shadow: 0 0 0 3px rgb(40 39 32 / 0.14);
+  box-shadow: 0 0 0 3px rgb(var(--c-ink-rgb) / 0.14);
 }
 
 .input[aria-invalid="true"] {
   border-color: var(--c-danger);
+}
+
+/* Фокус на поле с ошибкой: граница остаётся цветом ошибки, фокус показывает сплошное кольцо ≥ 3:1 (QA TQ-05) */
+.input[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--c-bg), 0 0 0 4px var(--c-danger);
 }
 
 .input:disabled {
@@ -1442,9 +1583,9 @@ legend.field__label {
 
 .lead-form__demo {
   padding: 10px 14px;
-  border: 1px dashed rgb(162 129 75 / 0.6);
+  border: 1px dashed rgb(var(--c-accent-rgb) / 0.6);
   border-radius: 12px;
-  background: rgb(162 129 75 / 0.07);
+  background: rgb(var(--c-accent-rgb) / 0.07);
   color: var(--c-accent-ink);
   font-size: 0.88rem;
 }
@@ -1453,7 +1594,7 @@ legend.field__label {
   display: none;
   width: 18px;
   height: 18px;
-  border: 2px solid rgb(250 247 240 / 0.35);
+  border: 2px solid rgb(var(--c-btn-text-rgb) / 0.35);
   border-top-color: var(--c-btn-text);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -1484,9 +1625,9 @@ legend.field__label {
 
 .lead-form__alert {
   padding: 12px 16px;
-  border: 1px solid rgb(163 65 46 / 0.3);
+  border: 1px solid rgb(var(--c-danger-rgb) / 0.3);
   border-radius: 12px;
-  background: rgb(163 65 46 / 0.06);
+  background: rgb(var(--c-danger-rgb) / 0.06);
   color: var(--c-danger);
   font-size: 0.95rem;
 }
@@ -1549,6 +1690,9 @@ legend.field__label {
   padding-block: 56px 28px;
   border-top: 1px solid var(--c-border);
   color: var(--c-text-2);
+  /* фоновая сцена проходит под подвалом приглушённой: мелкий вторичный текст сохраняет контраст */
+  position: relative;
+  background: rgb(var(--c-bg-rgb) / 0.9);
 }
 
 .site-footer__grid {
@@ -1612,4 +1756,30 @@ legend.field__label {
   padding-top: 20px;
   border-top: 1px solid var(--c-border);
   font-size: 0.88rem;
+}
+
+/* Подложка под текстом вне карточек (заголовки секций, тезис, строки «Платформы» и «ответ в течение…»): слой цвета
+   фона ровно по блоку текста, мягкий край — тенью наружу. Кольцо фоновой сцены проходит позади текста, а не сквозь
+   него — вторичный текст держит AA при заметной сцене (QA TQ-02). Плотность под текстом не зависит от высоты блока,
+   а тень не создаёт горизонтальной прокрутки (QA TQ-09). В обычном состоянии подложка совпадает с фоном и не видна. */
+.section-head,
+.statement__inner,
+.platforms,
+.contact__response {
+  position: relative;
+  isolation: isolate;
+}
+
+.section-head::after,
+.statement__inner::after,
+.platforms::after,
+.contact__response::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 24px;
+  background: rgb(var(--c-bg-rgb) / 0.92);
+  box-shadow: 0 0 40px 24px rgb(var(--c-bg-rgb) / 0.92);
+  pointer-events: none;
 }

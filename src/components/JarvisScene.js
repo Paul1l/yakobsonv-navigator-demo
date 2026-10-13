@@ -1,6 +1,8 @@
 import { el } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
-import { createRenderer } from '../scene/renderer.js';
+import { createRenderer, DEFAULT_PALETTE } from '../scene/renderer.js';
+import { scenePalette } from '../lib/theme.js';
+import { heroClock } from '../scene/clock.js';
 import { createLoop } from '../scene/loop.js';
 import { createMagnetState, aimMagnet, releaseMagnet, stepMagnet } from '../scene/magnet.js';
 
@@ -25,8 +27,9 @@ export function JarvisScene({ debug = false } = {}) {
   `);
   const canvas = root.querySelector('canvas');
   const toggle = root.querySelector('.scene__toggle');
+  const labels = root.querySelectorAll('.scene__label');
   const ctx = canvas.getContext('2d');
-  const renderer = createRenderer();
+  const renderer = createRenderer(undefined, scenePalette(DEFAULT_PALETTE));
   const magnet = createMagnetState();
   const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -40,6 +43,7 @@ export function JarvisScene({ debug = false } = {}) {
   let mounted = false;
   let resizeObserver = null;
   let intersectionObserver = null;
+  let handoff = 0; // 0…1: доля, на которую кольцо уже передано фоновой сцене (AmbientScene, событие 'scenehandoff')
 
   const loop = createLoop((dt) => {
     t += dt;
@@ -48,13 +52,14 @@ export function JarvisScene({ debug = false } = {}) {
   });
 
   function render() {
+    heroClock.t = t; // фоновая сцена подхватывает кольцо с этого же кадра
     if (!ctx || !width || !height) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     renderer.draw(ctx, { width, height, t, magnet });
   }
 
   function sync() {
-    if (mounted && !paused && inView && pageVisible && width > 0) loop.start();
+    if (mounted && !paused && inView && pageVisible && width > 0 && handoff < 1) loop.start();
     else loop.stop();
   }
 
@@ -85,6 +90,8 @@ export function JarvisScene({ debug = false } = {}) {
     updateToggle();
     sync();
     render();
+    // кнопка паузы управляет и фоновой сценой страницы
+    document.dispatchEvent(new CustomEvent('scenepause', { detail: { paused } }));
   }
 
   const onToggle = () => setPaused(!paused);
@@ -106,6 +113,22 @@ export function JarvisScene({ debug = false } = {}) {
 
   const onReduceChange = (event) => setPaused(event.matches);
 
+  // Прокрутка уводит кольцо с первого экрана: фоновая сцена подхватывает его на том же месте, а здесь кольцо
+  // и подписи растворяются; когда передача завершена, свой цикл не нужен
+  const onHandoff = (event) => {
+    handoff = event.detail.progress;
+    const opacity = handoff > 0 ? String(1 - handoff) : '';
+    canvas.style.opacity = opacity;
+    labels.forEach((label) => (label.style.opacity = opacity));
+    sync();
+  };
+
+  // Тема сменилась — сцена перекрашивается в цвета темы (бирюза / шампань)
+  const onThemeChange = () => {
+    renderer.setPalette(scenePalette(DEFAULT_PALETTE));
+    render();
+  };
+
   function mount() {
     if (mounted) return;
     mounted = true;
@@ -115,6 +138,8 @@ export function JarvisScene({ debug = false } = {}) {
     root.addEventListener('pointerleave', onPointerLeave);
     document.addEventListener('visibilitychange', onVisibility);
     reduceQuery.addEventListener('change', onReduceChange);
+    document.addEventListener('themechange', onThemeChange);
+    document.addEventListener('scenehandoff', onHandoff);
 
     resizeObserver = new ResizeObserver((entries) => {
       const box = entries[entries.length - 1].contentRect;
@@ -164,6 +189,8 @@ export function JarvisScene({ debug = false } = {}) {
     root.removeEventListener('pointerleave', onPointerLeave);
     document.removeEventListener('visibilitychange', onVisibility);
     reduceQuery.removeEventListener('change', onReduceChange);
+    document.removeEventListener('themechange', onThemeChange);
+    document.removeEventListener('scenehandoff', onHandoff);
     if (debug) delete window.__jarvis;
   }
 

@@ -21,6 +21,8 @@ html.is-locked {
   overflow: hidden;
 }
 
+/* У html фона нет: фон body переходит на холст документа, и фоновая сцена (.ambient-scene, z-index: -1)
+   рисуется над ним, но под содержимым */
 body {
   margin: 0;
   min-height: 100vh;
@@ -81,7 +83,7 @@ select {
 }
 
 ::selection {
-  background: rgb(162 129 75 / 0.24);
+  background: rgb(var(--c-accent-rgb) / 0.24);
 }
 
 :focus-visible {
@@ -141,6 +143,11 @@ select {
   letter-spacing: -0.01em;
 }
 
+/* Тёмная тема: курсив-акцент в заголовках — шампань, как на живом сайте (10:1 на фоне) */
+:root[data-theme="dark"] .serif {
+  color: var(--c-accent);
+}
+
 /* ---------- Кнопки ---------- */
 .btn {
   position: relative;
@@ -175,13 +182,13 @@ select {
 .btn--primary {
   background: var(--c-btn);
   color: var(--c-btn-text);
-  box-shadow: 0 12px 26px -16px rgb(40 39 32 / 0.7);
+  box-shadow: 0 12px 26px -16px rgb(var(--c-shadow-rgb) / 0.7);
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--c-text);
-  border-color: rgb(40 39 32 / 0.22);
+  border-color: rgb(var(--c-ink-rgb) / 0.22);
 }
 
 .btn--sm {
@@ -202,7 +209,7 @@ select {
   color: var(--c-text);
   font-size: 0.95rem;
   text-decoration: underline;
-  text-decoration-color: rgb(40 39 32 / 0.3);
+  text-decoration-color: rgb(var(--c-ink-rgb) / 0.3);
   text-underline-offset: 0.3em;
 }
 
@@ -217,8 +224,8 @@ select {
   }
 
   .btn--ghost:hover {
-    background: rgb(40 39 32 / 0.04);
-    border-color: rgb(40 39 32 / 0.4);
+    background: rgb(var(--c-ink-rgb) / 0.04);
+    border-color: rgb(var(--c-ink-rgb) / 0.4);
   }
 
   .btn--text:hover {
@@ -264,7 +271,7 @@ select {
 @media (hover: hover) and (pointer: fine) {
   .icon-btn:hover {
     border-color: var(--c-border-strong);
-    background: #fff;
+    background: var(--c-surface-hi);
   }
 }
 
@@ -346,7 +353,7 @@ select {
   border-radius: inherit;
   background: radial-gradient(
     440px circle at var(--mx, 50%) var(--my, 0%),
-    rgb(162 129 75 / 0.13),
+    rgb(var(--c-accent-rgb) / 0.13),
     rgb(var(--c-teal-rgb) / 0.04) 38%,
     transparent 62%
   );
@@ -366,9 +373,9 @@ select {
   align-items: center;
   gap: 6px;
   padding: 5px 11px;
-  border: 1px dashed rgb(162 129 75 / 0.75);
+  border: 1px dashed rgb(var(--c-accent-rgb) / 0.75);
   border-radius: var(--radius-pill);
-  background: rgb(162 129 75 / 0.09);
+  background: rgb(var(--c-accent-rgb) / 0.09);
   color: var(--c-accent-ink);
   font-size: 0.72rem;
   font-weight: 700;

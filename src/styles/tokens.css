@@ -1,0 +1,119 @@
+/* Дизайн-токены yakobsonv. Светлая тема — по умолчанию (:root), тёмная — :root[data-theme="dark"].
+   Светлая, контраст по WCAG: --c-text-2 на --c-bg ≈ 5:1; --c-accent на --c-bg ≈ 3.3:1 — только крупный
+   текст и декор; для мелкого текста шампани — --c-accent-ink (≈ 5:1).
+   Токены *-rgb — три числа через пробел, для полупрозрачных оттенков: rgb(var(--c-ink-rgb) / 0.05).
+   --scene-rgb и --scene-deep-rgb читает JS (lib/theme.js → сцены Canvas). */
+:root {
+  color-scheme: light;
+  --c-bg: #f4f3ef;
+  --c-bg-rgb: 244 243 239;
+  --c-surface: #fcfbf8;
+  --c-surface-rgb: 252 251 248;
+  --c-surface-sunk: #efede7;
+  --c-surface-hi: #fff; /* поверхность под курсором (icon-btn:hover) */
+  --c-panel-top: #fffefb; /* верх градиента раскрытой панели решения */
+  --c-text: #282720;
+  --c-text-2: #6b685e;
+  --c-placeholder: #716e63;
+  --c-ink-rgb: 40 39 32; /* тинты, полупрозрачные границы и подчёркивания */
+  --c-shadow-rgb: 40 39 32; /* тени и затемнение под диалогами */
+  --c-border: #dfdbd1;
+  --c-border-strong: #c9c3b5;
+  --c-border-input: #949084; /* граница поля ≈ 3:1 на поверхности (WCAG 1.4.11) */
+  --c-accent: #a2814b;
+  --c-accent-rgb: 162 129 75;
+  --c-accent-ink: #7a5f33;
+  --c-btn: #292821;
+  --c-btn-hover: #3a382f;
+  --c-btn-text: #faf7f0;
+  --c-btn-text-rgb: 250 247 240;
+  --c-teal-rgb: 23 127 125;
+  --c-teal: rgb(var(--c-teal-rgb));
+  --c-on-teal: #fff; /* значок на заливке --c-teal */
+  --c-success: #2f6f4f;
+  --c-danger: #a3412e;
+  --c-danger-rgb: 163 65 46;
+  --c-scrim: rgb(40 39 32 / 0.34); /* подложка открытого меню и диалога */
+
+  /* Сцены Canvas: основной цвет и глубокий (передний план, ядро) */
+  --scene-rgb: 23 127 125;
+  --scene-deep-rgb: 13 92 90;
+  /* Фоновая сцена страницы: непрозрачность, когда видна. Текст вне карточек лежит на подложке цвета фона
+     (.section-head и др., components.css), поэтому кольцо может быть заметным, не снижая контраст */
+  --ambient-opacity: 0.75;
+
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Georgia, "Times New Roman", Times, serif;
+
+  --radius-card: 22px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 1px 1px rgb(var(--c-shadow-rgb) / 0.03), 0 14px 34px -22px rgb(var(--c-shadow-rgb) / 0.22);
+  --shadow-lift: 0 2px 4px rgb(var(--c-shadow-rgb) / 0.04), 0 26px 50px -28px rgb(var(--c-shadow-rgb) / 0.32);
+  --ring-focus: 0 0 0 3px var(--c-bg), 0 0 0 5px var(--c-text);
+
+  --container: 1200px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --section-y: clamp(56px, 9vw, 128px);
+  --header-h: 64px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 0.28s;
+}
+
+/* Тёмная тема — палитра живого yakobsonv.com (замер 12.10.2026). Контраст на поверхности #1c1916:
+   текст 14.5:1, --c-text-2 6.6:1, шампань 9.3:1, граница поля 3.4:1; на фоне #0e0d0b — выше.
+   Бирюзовые акценты интерфейса (--c-teal) в тёмной теме — шампань. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #0e0d0b;
+  --c-bg-rgb: 14 13 11;
+  --c-surface: #1c1916;
+  --c-surface-rgb: 28 25 22;
+  --c-surface-sunk: #161412;
+  --c-surface-hi: #24201c;
+  --c-panel-top: #221e1a;
+  --c-text: #f2e9da;
+  --c-text-2: #a89e8c;
+  --c-placeholder: #918877; /* 5.5:1 на фоне поля #0e0d0b, заметно тусклее введённого текста */
+  --c-ink-rgb: 242 233 218;
+  --c-shadow-rgb: 0 0 0;
+  --c-border: #2a2521;
+  --c-border-strong: #3a332d;
+  --c-border-input: #766c60; /* 3.4:1 на поверхности, 3.8:1 на фоне поля */
+  --c-accent: #d4b896;
+  --c-accent-rgb: 212 184 150;
+  --c-accent-ink: #d4b896;
+  --c-btn: #d4b896;
+  --c-btn-hover: #e0c8a8;
+  --c-btn-text: #0e0d0b;
+  --c-btn-text-rgb: 14 13 11;
+  --c-teal-rgb: 212 184 150;
+  --c-on-teal: #0e0d0b;
+  --c-success: #8ac58c;
+  --c-danger: #e5a08f;
+  --c-danger-rgb: 229 160 143;
+  --c-scrim: rgb(0 0 0 / 0.6); /* на почти чёрном фоне 0.34 не читается как затемнение */
+
+  --scene-rgb: 212 184 150;
+  --scene-deep-rgb: 236 214 178;
+  --ambient-opacity: 0.85;
+}
+
+@media (max-width: 599px) {
+  /* Телефон: кольцо чаще оказывается под текстом — чуть тише */
+  :root {
+    --ambient-opacity: 0.6;
+  }
+
+  :root[data-theme="dark"] {
+    --ambient-opacity: 0.7;
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --header-h: 76px;
+  }
+}

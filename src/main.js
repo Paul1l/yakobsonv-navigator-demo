@@ -10,6 +10,8 @@ import { Pricing } from './components/Pricing.js';
 import { ContactSection } from './components/ContactSection.js';
 import { ContactDialog } from './components/ContactDialog.js';
 import { Footer } from './components/Footer.js';
+import { AmbientScene } from './components/AmbientScene.js';
+import { watchThemeStorage } from './lib/theme.js';
 
 // ?debug — служебный доступ к сцене для проверок (window.__jarvis, window.__app)
 const debug = new URLSearchParams(window.location.search).has('debug');
@@ -20,6 +22,7 @@ export function createApp(container) {
   const header = Header({ onMenu: (burger) => drawer.open(burger) });
   const sections = [Hero({ debug }), Solutions(), Cases(), Process(), ProjectCabinetDemo(), Pricing(), ContactSection()];
   const footer = Footer();
+  const ambient = AmbientScene(); // фоновая сцена всей страницы — холст под содержимым, вне #app
 
   const main = document.createElement('main');
   main.id = 'main';
@@ -28,6 +31,7 @@ export function createApp(container) {
 
   const parts = [header, ...sections, footer, drawer, dialog];
   let detachGlow = null;
+  let unwatchTheme = null;
 
   // Все кнопки «Обсудить …» помечены data-contact: задача, источник и контекст — в data-атрибутах
   const onContactClick = async (event) => {
@@ -43,15 +47,21 @@ export function createApp(container) {
   };
 
   return {
+    ambient,
     mount() {
       container.replaceChildren(header.el, main, footer.el, drawer.el, dialog.el);
       parts.forEach((part) => part.mount?.());
+      container.before(ambient.el);
+      ambient.mount();
       document.addEventListener('click', onContactClick);
       detachGlow = attachGlow(container);
+      unwatchTheme = watchThemeStorage();
     },
     destroy() {
       document.removeEventListener('click', onContactClick);
       detachGlow?.();
+      unwatchTheme?.();
+      ambient.destroy();
       parts.forEach((part) => part.destroy?.());
       container.replaceChildren();
     },

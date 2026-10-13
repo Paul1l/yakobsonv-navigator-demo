@@ -21,13 +21,13 @@ import {
 } from './geometry.js';
 import { coreDisplacement, ringPull } from './magnet.js';
 
-const TEAL = '23,127,125';
-const DEEP = '13,92,90';
-// Нити: задняя, средняя и передняя сторона жгута
+// Цвета по умолчанию (светлая тема); тёмная тема передаёт свои через setPalette — у каждой сцены своя палитра
+export const DEFAULT_PALETTE = Object.freeze({ base: '23,127,125', deep: '13,92,90' });
+// Нити: задняя, средняя и передняя сторона жгута (deep — передний план)
 const THREAD_STYLE = [
-  { alpha: 0.08, width: 0.45, color: TEAL },
-  { alpha: 0.17, width: 0.55, color: TEAL },
-  { alpha: 0.3, width: 0.7, color: DEEP },
+  { alpha: 0.08, width: 0.45, deep: false },
+  { alpha: 0.17, width: 0.55, deep: false },
+  { alpha: 0.3, width: 0.7, deep: true },
 ];
 const RIB_ALPHA = [0.06, 0.11, 0.17];
 const EDGE_ALPHA = [0.05, 0.1, 0.2];
@@ -36,7 +36,9 @@ const PARTICLE_LEVELS = 6;
 
 const depthBucket = (d) => (d < -0.35 ? 0 : d < 0.35 ? 1 : 2);
 
-export function createRenderer(cfg = SCENE) {
+export function createRenderer(cfg = SCENE, palette = DEFAULT_PALETTE) {
+  let TEAL = palette.base;
+  let DEEP = palette.deep;
   const ring = createRingModel(cfg);
   const core = createCoreModel(cfg.coreLat, cfg.coreLon);
   const S = cfg.samples;
@@ -135,8 +137,9 @@ export function createRenderer(cfg = SCENE) {
     ctx.stroke();
   }
 
-  function draw(ctx, { width: W, height: H, t, magnet }) {
-    const { cx, cy, R, Rc } = sceneMetrics(W, H, cfg);
+  // metrics — необязательное положение и размер кольца ({ cx, cy, R, Rc }); по умолчанию — центр холста
+  function draw(ctx, { width: W, height: H, t, magnet, metrics = null }) {
+    const { cx, cy, R, Rc } = metrics ?? sceneMetrics(W, H, cfg);
     const k = magnet && magnet.strength > 0.001 ? magnet.strength : 0;
     if (magnet) {
       mouse.x = magnet.x - cx;
@@ -232,7 +235,7 @@ export function createRenderer(cfg = SCENE) {
     for (let b = 0; b < THREAD_STYLE.length; b++) {
       const s = THREAD_STYLE[b];
       ctx.lineWidth = s.width;
-      ctx.strokeStyle = `rgba(${s.color},${s.alpha})`;
+      ctx.strokeStyle = `rgba(${s.deep ? DEEP : TEAL},${s.alpha})`;
       ctx.stroke(paths[b]);
     }
 
@@ -403,7 +406,20 @@ export function createRenderer(cfg = SCENE) {
     return result;
   }
 
-  return { draw, probeCore, metrics: (W, H) => sceneMetrics(W, H, cfg), stats: { edges: core.edges.length / 2 } };
+  // Смена палитры (тема): 'r,g,b' для основного цвета и переднего плана
+  function setPalette(next) {
+    TEAL = next.base;
+    DEEP = next.deep;
+    bandKey = ''; // градиент под жгутом пересоздаётся в новом цвете
+  }
+
+  return {
+    draw,
+    probeCore,
+    setPalette,
+    metrics: (W, H) => sceneMetrics(W, H, cfg),
+    stats: { edges: core.edges.length / 2 },
+  };
 }
 
 const round = (v) => Math.round(v * 100) / 100;
