@@ -1,33 +1,27 @@
 import { el } from '../lib/dom.js';
-import { icons } from '../lib/icons.js';
 import { createRenderer, DEFAULT_PALETTE } from '../scene/renderer.js';
 import { scenePalette } from '../lib/theme.js';
 import { heroClock } from '../scene/clock.js';
 import { createLoop } from '../scene/loop.js';
-import { createMagnetState, aimMagnet, releaseMagnet, stepMagnet } from '../scene/magnet.js';
+import { createMagnetState, aimMagnet, releaseMagnet, stepMagnet, expApproach } from '../scene/magnet.js';
 
 const STATIC_TIME = 1.7; // кадр для статичного варианта
+const FOCUS_RATE = 12; // скорость проявления подсветки сектора, 1/с (≈ 0,25 с)
 
 /**
  * Декоративная сцена: кольцо из нитей и сетчатое ядро.
  * Цикл работает только когда сцена видна, вкладка активна и анимация не на паузе.
  * Магнитная реакция — только для мыши; касания и прокрутку не перехватывает.
+ * Подписи направлений и кнопка показа — в Showcase; сцена только рисует и принимает команды:
+ * setPaused (кнопка показа) и setFocus (подсветка сектора выбранного направления).
  */
 export function JarvisScene({ debug = false } = {}) {
   const root = el(`
     <div class="scene">
       <canvas class="scene__canvas" aria-hidden="true"></canvas>
-      <span class="scene__label scene__label--site" aria-hidden="true">Сайт</span>
-      <span class="scene__label scene__label--traffic" aria-hidden="true">Трафик</span>
-      <span class="scene__label scene__label--auto" aria-hidden="true">Автоматизация</span>
-      <button class="icon-btn scene__toggle" type="button">
-        <span data-icon></span><span class="sr-only" data-label></span>
-      </button>
     </div>
   `);
   const canvas = root.querySelector('canvas');
-  const toggle = root.querySelector('.scene__toggle');
-  const labels = root.querySelectorAll('.scene__label');
   const ctx = canvas.getContext('2d');
   const renderer = createRenderer(undefined, scenePalette(DEFAULT_PALETTE));
   const magnet = createMagnetState();
@@ -37,25 +31,37 @@ export function JarvisScene({ debug = false } = {}) {
   let height = 0;
   let dpr = 1;
   let t = STATIC_TIME;
-  let paused = reduceQuery.matches; // при reduced motion — сразу статичный вариант
+  let userPaused = false; // остановка показа посетителем
+  let paused = reduceQuery.matches; // фактическая пауза: посетитель или reduced motion — статичный вариант
   let inView = false;
   let pageVisible = !document.hidden;
   let mounted = false;
   let resizeObserver = null;
   let intersectionObserver = null;
   let handoff = 0; // 0…1: доля, на которую кольцо уже передано фоновой сцене (AmbientScene, событие 'scenehandoff')
+  // Подсвеченные секторы орбиты: выбранный проявляется, прежний гаснет
+  const highlights = [];
 
   const loop = createLoop((dt) => {
     t += dt;
     stepMagnet(magnet, dt);
+    stepHighlights(dt);
     render();
   });
+
+  function stepHighlights(dt) {
+    for (let i = highlights.length - 1; i >= 0; i--) {
+      const h = highlights[i];
+      h.k = dt > 0 ? expApproach(h.k, h.target, FOCUS_RATE, dt) : h.target;
+      if (h.target === 0 && h.k < 0.01) highlights.splice(i, 1);
+    }
+  }
 
   function render() {
     heroClock.t = t; // фоновая сцена подхватывает кольцо с этого же кадра
     if (!ctx || !width || !height) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    renderer.draw(ctx, { width, height, t, magnet });
+    renderer.draw(ctx, { width, height, t, magnet, highlights });
   }
 
   function sync() {
@@ -73,28 +79,42 @@ export function JarvisScene({ debug = false } = {}) {
     sync();
   }
 
-  function updateToggle() {
-    const label = paused ? 'Запустить анимацию' : 'Остановить анимацию';
-    toggle.querySelector('[data-label]').textContent = label;
-    toggle.querySelector('[data-icon]').innerHTML = paused ? icons.play : icons.pause;
-    toggle.title = label;
-  }
-
-  function setPaused(value) {
-    paused = value;
+  function applyPaused() {
+    const next = userPaused || reduceQuery.matches;
+    if (next === paused && mounted) return;
+    paused = next;
     if (paused) {
       // На паузе магнитная реакция выключена: форма сразу возвращается к фоновой
       releaseMagnet(magnet);
       magnet.strength = 0;
+      stepHighlights(0);
     }
-    updateToggle();
     sync();
     render();
-    // кнопка паузы управляет и фоновой сценой страницы
+    // остановка показа останавливает и фоновую сцену страницы
     document.dispatchEvent(new CustomEvent('scenepause', { detail: { paused } }));
   }
 
-  const onToggle = () => setPaused(!paused);
+  function setPaused(value) {
+    userPaused = Boolean(value);
+    applyPaused();
+  }
+
+  // Подсветка сектора орбиты в направлении метки (угол в радианах, 0 — справа, по часовой); null — снять
+  function setFocus(angle) {
+    let found = false;
+    for (const h of highlights) {
+      const same = angle !== null && Math.abs(h.angle - angle) < 1e-3;
+      h.target = same ? 1 : 0;
+      found ||= same;
+    }
+    if (angle !== null && !found) highlights.push({ angle, k: 0, target: 1 });
+    // без бегущего цикла (пауза, reduced motion, вне экрана) — сразу итоговое состояние
+    if (!loop.running) {
+      stepHighlights(0);
+      render();
+    }
+  }
 
   const onPointerMove = (event) => {
     if (event.pointerType !== 'mouse' || paused) return;
@@ -111,15 +131,13 @@ export function JarvisScene({ debug = false } = {}) {
     sync();
   };
 
-  const onReduceChange = (event) => setPaused(event.matches);
+  const onReduceChange = () => applyPaused();
 
   // Прокрутка уводит кольцо с первого экрана: фоновая сцена подхватывает его на том же месте, а здесь кольцо
-  // и подписи растворяются; когда передача завершена, свой цикл не нужен
+  // растворяется; когда передача завершена, свой цикл не нужен. Метки направлений остаются — это кнопки.
   const onHandoff = (event) => {
     handoff = event.detail.progress;
-    const opacity = handoff > 0 ? String(1 - handoff) : '';
-    canvas.style.opacity = opacity;
-    labels.forEach((label) => (label.style.opacity = opacity));
+    canvas.style.opacity = handoff > 0 ? String(1 - handoff) : '';
     sync();
   };
 
@@ -132,8 +150,6 @@ export function JarvisScene({ debug = false } = {}) {
   function mount() {
     if (mounted) return;
     mounted = true;
-    updateToggle();
-    toggle.addEventListener('click', onToggle);
     root.addEventListener('pointermove', onPointerMove, { passive: true });
     root.addEventListener('pointerleave', onPointerLeave);
     document.addEventListener('visibilitychange', onVisibility);
@@ -162,6 +178,7 @@ export function JarvisScene({ debug = false } = {}) {
           return {
             running: loop.running,
             paused,
+            userPaused,
             inView,
             pageVisible,
             width,
@@ -169,6 +186,7 @@ export function JarvisScene({ debug = false } = {}) {
             dpr,
             t: Math.round(t * 100) / 100,
             strength: Math.round(magnet.strength * 1000) / 1000,
+            highlights: highlights.map((h) => ({ angle: Math.round(h.angle * 100) / 100, k: Math.round(h.k * 100) / 100 })),
           };
         },
         probe: () => renderer.probeCore({ width, height, t, magnet }),
@@ -184,7 +202,6 @@ export function JarvisScene({ debug = false } = {}) {
     loop.stop();
     resizeObserver?.disconnect();
     intersectionObserver?.disconnect();
-    toggle.removeEventListener('click', onToggle);
     root.removeEventListener('pointermove', onPointerMove);
     root.removeEventListener('pointerleave', onPointerLeave);
     document.removeEventListener('visibilitychange', onVisibility);
@@ -194,5 +211,16 @@ export function JarvisScene({ debug = false } = {}) {
     if (debug) delete window.__jarvis;
   }
 
-  return { el: root, mount, destroy };
+  return {
+    el: root,
+    canvas,
+    mount,
+    destroy,
+    setPaused,
+    setFocus,
+    get paused() {
+      return paused;
+    },
+    metrics: () => renderer.metrics(width, height),
+  };
 }

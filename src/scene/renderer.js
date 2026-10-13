@@ -138,7 +138,34 @@ export function createRenderer(cfg = SCENE, palette = DEFAULT_PALETTE) {
   }
 
   // metrics — необязательное положение и размер кольца ({ cx, cy, R, Rc }); по умолчанию — центр холста
-  function draw(ctx, { width: W, height: H, t, magnet, metrics = null }) {
+  // Подсветка сектора выбранного направления: мягкое свечение жгута, тонкая дуга снаружи и засечка к метке.
+  // highlights — [{ angle, k }], k 0…1 — сила проявления (переход ведёт сцена)
+  function drawHighlights(ctx, list, cx, cy, R, k) {
+    for (const h of list) {
+      if (!(h.k > 0.01)) continue;
+      const a = h.angle;
+      // свечение по жгуту: три слоя всё уже и ярче — мягкие края без градиента вдоль дуги
+      for (const [span, width, alpha] of [[0.62, 0.2, 0.05], [0.46, 0.13, 0.07], [0.3, 0.07, 0.1]]) {
+        ctx.beginPath();
+        traceArc(ctx, 1, a - span, a + span, cx, cy, R, k);
+        ctx.lineWidth = R * width;
+        ctx.strokeStyle = `rgba(${TEAL},${(alpha * h.k).toFixed(3)})`;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      traceArc(ctx, 1.33, a - 0.4, a + 0.4, cx, cy, R, k);
+      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = `rgba(${DEEP},${(0.62 * h.k).toFixed(3)})`;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * R * 1.33, cy + Math.sin(a) * R * 1.33);
+      ctx.lineTo(cx + Math.cos(a) * R * 1.43, cy + Math.sin(a) * R * 1.43);
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+  }
+
+  function draw(ctx, { width: W, height: H, t, magnet, metrics = null, highlights = null }) {
     const { cx, cy, R, Rc } = metrics ?? sceneMetrics(W, H, cfg);
     const k = magnet && magnet.strength > 0.001 ? magnet.strength : 0;
     if (magnet) {
@@ -262,6 +289,7 @@ export function createRenderer(cfg = SCENE, palette = DEFAULT_PALETTE) {
     drawArcs(ctx, HUD_ARCS[1], cx, cy, R, k, t);
     drawArcs(ctx, HUD_ARCS[2], cx, cy, R, k, t);
     drawSweep(ctx, cx, cy, R, k, t);
+    if (highlights?.length) drawHighlights(ctx, highlights, cx, cy, R, k);
 
     // 5. Частицы: круглые точки, сгруппированные по прозрачности — несколько заливок вместо 520
     for (let i = 0; i < ring.particles.length; i++) {

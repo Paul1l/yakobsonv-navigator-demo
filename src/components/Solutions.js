@@ -64,10 +64,21 @@ export function Solutions() {
   // Десктоп: первое решение раскрыто под карточками. Телефон: все свёрнуты, чтобы были видны три варианта
   select(window.matchMedia('(min-width: 900px)').matches ? solutions.items[0].id : null);
 
+  // Переход из подробностей направления на первом экране («Состав работ и результат»): раскрыть то же решение
+  const onExternalSelect = (event) => {
+    if (items.some((item) => item.id === event.detail?.id)) select(event.detail.id);
+  };
+
   return {
     el: root,
-    mount: () => root.addEventListener('click', onClick),
-    destroy: () => root.removeEventListener('click', onClick),
+    mount() {
+      root.addEventListener('click', onClick);
+      document.addEventListener('solutionselect', onExternalSelect);
+    },
+    destroy() {
+      root.removeEventListener('click', onClick);
+      document.removeEventListener('solutionselect', onExternalSelect);
+    },
   };
 }
 

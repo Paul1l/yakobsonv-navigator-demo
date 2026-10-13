@@ -431,18 +431,13 @@
 }
 
 /* ================= Jarvis scene ================= */
+/* Размер сцены задаёт .showcase (--orbit); max-width — запасной, если сцена стоит без него */
 .scene {
   position: relative;
   width: 100%;
   max-width: 520px;
   aspect-ratio: 1 / 1;
   margin-inline: auto;
-}
-
-@media (max-width: 959px) {
-  .scene {
-    max-width: 420px;
-  }
 }
 
 .scene__canvas {
@@ -452,51 +447,706 @@
   height: 100%;
 }
 
-/* Маленькие подписи направлений по краю сцены — не в центре и без шкал */
-.scene__label {
-  position: absolute;
-  z-index: 1;
-  padding: 3px 8px;
-  border-radius: var(--radius-pill);
-  background: rgb(var(--c-bg-rgb) / 0.78);
+/* ================= Showcase: выбор направления на первом экране =================
+   Правая колонка героя: подсказка → сцена с метками направлений → карточка выбранного направления.
+   --orbit — сторона квадрата сцены. Десктоп: зависит от высоты окна, чтобы на 1440×900 орбита и карточка
+   помещались в первый экран (900 → 424 px; 768 → 320 px; ≥ 1080 → 440 px). Планшет — 420, телефон — 240–280.
+   Метки неподвижны (абсолютно поверх холста), двигаются только кольца и частицы на canvas. */
+.hero__visual {
+  min-width: 0;
+}
+
+.showcase {
+  --orbit: 420px;
+  position: relative;
+  width: min(100%, var(--orbit));
+  margin-inline: auto;
+}
+
+@media (min-width: 960px) {
+  .showcase {
+    --orbit: clamp(320px, calc(100svh - var(--header-h) - 400px), 440px);
+  }
+}
+
+.showcase__stage {
+  position: relative;
+}
+
+.showcase__stage .scene {
+  max-width: none;
+}
+
+/* Подсказка — в стиле eyebrow, над сценой; бирюзовый штрих — от линий орбиты */
+.showcase__hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
   color: var(--c-text-2);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.16em;
-  line-height: 1.4;
+  line-height: 18px;
   text-transform: uppercase;
-  white-space: nowrap;
+}
+
+.showcase__hint {
+  position: relative; /* для подложки — см. «Подложка под текстом» в конце файла; на телефоне absolute */
+  isolation: isolate;
+}
+
+.showcase__hint::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  flex: none;
+  background: var(--c-teal);
+}
+
+/* Метки: контейнер не перехватывает нажатия по холсту, кнопки — да */
+.showcase__topics {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
-.scene__label--site {
-  left: 9%;
-  top: 11%;
+/* Кнопка-метка: область нажатия 44 px, видимая «пилюля» 32 px — рисует ::before, чтобы метки
+   оставались лёгкими на кольце. Ширина не меняется между состояниями: JS меряет положение кнопки */
+.topic {
+  position: absolute;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 14px 0 12px;
+  border: 0;
+  background: none;
+  color: var(--c-text-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur) var(--ease);
 }
 
-.scene__label--traffic {
+.topic::before {
+  content: "";
+  position: absolute;
+  inset: 6px 0;
+  z-index: -1;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
+  background: rgb(var(--c-surface-rgb) / 0.9);
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+/* Акцент-точка: пустая у невыбранных, залитая бирюзой (шампанью) у выбранной */
+.topic__mark {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.topic[data-topic="site"] {
+  left: 8%;
+  top: 10%;
+}
+
+.topic[data-topic="traffic"] {
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: calc(50% - 22px); /* без transform — положение кнопки читает JS */
 }
 
-.scene__label--auto {
-  left: 9%;
-  bottom: 11%;
+.topic[data-topic="automation"] {
+  left: 8%;
+  bottom: 10%;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .topic:hover {
+    color: var(--c-text);
+  }
+
+  .topic:hover::before {
+    border-color: var(--c-border-strong);
+  }
+}
+
+/* Предпросмотр по наведению (ставит JS после задержки) — как hover, точка уже в цвете выбора */
+.topic.is-previewing {
+  color: var(--c-text);
+}
+
+.topic.is-previewing::before {
+  border-color: var(--c-border-strong);
+}
+
+.topic.is-previewing .topic__mark {
+  border-color: var(--c-teal);
+}
+
+.topic:active::before {
+  background: var(--c-surface-hi);
+}
+
+/* Выбранная: тёмный текст, бирюзовая рамка (4.4:1 к фону; шампань в тёмной — 10:1), залитая точка */
+.topic[aria-selected="true"] {
+  color: var(--c-text);
+}
+
+.topic[aria-selected="true"]::before {
+  border-color: var(--c-teal);
+  background: var(--c-surface);
+  box-shadow: 0 6px 16px -12px rgb(var(--c-shadow-rgb) / 0.5);
+}
+
+.topic[aria-selected="true"] .topic__mark {
+  border-color: var(--c-teal);
+  background: var(--c-teal);
+  box-shadow: 0 0 0 3px rgb(var(--c-teal-rgb) / 0.18);
+}
+
+/* Фокус — кольцом вокруг видимой «пилюли», а не вокруг невидимой области 44 px */
+.topic:focus-visible,
+.scene__toggle:focus-visible {
+  outline: none;
+}
+
+.topic:focus-visible::before,
+.scene__toggle:focus-visible::before {
+  box-shadow: var(--ring-focus);
+}
+
+/* Кнопка показа: компактная «пилюля» с видимой подписью в свободном правом верхнем углу сцены —
+   не пересекается с метками (Сайт — слева сверху, Трафик — справа по центру, Автоматизация — слева снизу).
+   Переопределяет .icon-btn, если класс остался в разметке */
 .scene__toggle {
   position: absolute;
-  right: 6%;
-  bottom: 6%;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  padding: 0 14px 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--c-text-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur) var(--ease);
+}
+
+.scene__toggle::before {
+  content: "";
+  position: absolute;
+  inset: 4px 0;
+  z-index: -1;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
   background: rgb(var(--c-surface-rgb) / 0.86);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.scene__toggle-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--c-teal);
 }
 
 .scene__toggle svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scene__toggle:hover {
+    background: none;
+    color: var(--c-text);
+  }
+
+  .scene__toggle:hover::before {
+    border-color: var(--c-border-strong);
+  }
+}
+
+.scene__toggle:active::before {
+  background: var(--c-surface-hi);
+}
+
+/* Карточка направления: все панели в одной ячейке — высота области = самой длинной карточке,
+   смена темы не двигает вёрстку. Неактивные — visibility: hidden (и inert из JS) */
+.showcase__slot {
+  position: relative;
+  display: grid;
+  margin-top: 18px;
+}
+
+/* Связка с орбитой: волосяная линия от низа сцены к карточке и точка-узел на её рамке */
+.showcase__slot::before,
+.showcase__slot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.showcase__slot::before {
+  bottom: 100%;
+  width: 1px;
+  height: 34px; /* 18 px зазора + 16 px в пустую нижнюю полосу сцены */
+  margin-left: -0.5px;
+  background: linear-gradient(to bottom, rgb(var(--c-teal-rgb) / 0), rgb(var(--c-teal-rgb) / 0.6));
+  transform-origin: 50% 0;
+  transition: transform 0.4s var(--ease);
+}
+
+.showcase__slot::after {
+  top: -2.5px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: var(--c-teal);
+  transition: opacity 0.3s var(--ease) 0.3s;
+}
+
+.showcase__panel {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 20px 22px 10px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+  transform-origin: 50% 0;
+}
+
+.showcase__panel[data-active="false"] {
+  visibility: hidden;
+}
+
+.showcase__count {
+  color: var(--c-text-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.showcase__title {
+  font-size: clamp(1.3rem, 1.1rem + 0.5vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.showcase__text {
+  color: var(--c-text-2);
+  font-size: 0.97rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* «Подробнее» — текстовая кнопка со стрелкой; margin-top: auto держит её на одном месте у всех трёх карточек */
+.showcase__more {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--c-ink-rgb) / 0.28);
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.showcase__more svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .showcase__more:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .showcase__more:hover .btn__arrow {
+    transform: translateX(3px);
+  }
+}
+
+/* Появление карточки. .is-entering — смена темы: короткое смещение сверху, со стороны орбиты.
+   .is-intro — первое раскрытие (JS ставит вместе со снятием data-intro): линия дотягивается до карточки,
+   карточка выходит из орбиты с бо́льшим смещением и мягким scale. Правило .is-intro идёт ниже и при
+   одновременных классах побеждает; после анимации текст неподвижен (fill только backwards) */
+.showcase__panel.is-entering {
+  animation: showcase-enter 0.26s var(--ease);
+}
+
+.showcase__panel.is-intro {
+  animation: showcase-intro 0.56s var(--ease) 0.12s backwards;
+}
+
+@keyframes showcase-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes showcase-intro {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.96);
+  }
+}
+
+/* До первого показа карточка и линия скрыты — только при разрешённой анимации:
+   при reduced motion всё видно сразу */
+@media (prefers-reduced-motion: no-preference) {
+  .showcase[data-intro] .showcase__panel {
+    opacity: 0;
+  }
+
+  .showcase[data-intro] .showcase__slot::before {
+    transform: scaleY(0);
+  }
+
+  .showcase[data-intro] .showcase__slot::after {
+    opacity: 0;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase__panel.is-entering,
+  .showcase__panel.is-intro {
+    animation: none;
+  }
+
+  .showcase__slot::before,
+  .showcase__slot::after,
+  .topic,
+  .topic::before,
+  .topic__mark,
+  .scene__toggle,
+  .scene__toggle::before {
+    transition: none;
+  }
+}
+
+/* Телефон: орбита 240–280 → подсказка → три сегмента → карточка.
+   Кнопка показа — над сценой справа (углы сцены малы для подписи). Подсказка стоит в DOM до сцены,
+   поэтому опускается абсолютно на расчётную высоту: полоса кнопки + сторона сцены + зазор */
+@media (max-width: 599px) {
+  .showcase {
+    --orbit: min(280px, calc(100vw - 2 * var(--gutter) - 24px));
+    --toggle-band: 32px; /* 44 px кнопки − 12 px наезда на пустой верх сцены */
+    width: 100%;
+  }
+
+  /* Если JS скроет кнопку показа атрибутом hidden — подсказка не должна наехать на сцену */
+  .showcase:has(.scene__toggle[hidden]) {
+    --toggle-band: 0px;
+  }
+
+  .showcase__stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .showcase__stage .scene {
+    width: var(--orbit);
+  }
+
+  .scene__toggle {
+    position: relative;
+    top: auto;
+    right: auto;
+    order: -1;
+    align-self: flex-end;
+    margin-bottom: -12px;
+  }
+
+  .showcase__hint {
+    position: absolute;
+    top: calc(var(--toggle-band) + var(--orbit) + 14px);
+    left: 0;
+    right: 0;
+    justify-content: center;
+    margin: 0;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  .showcase__hint::before {
+    display: none;
+  }
+
+  /* 14 px до подсказки + 18 px строки + 10 px до сегментов */
+  .showcase__topics {
+    position: static;
+    display: flex;
+    gap: 4px;
+    align-self: stretch;
+    margin-top: 42px;
+    padding: 4px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    /* непрозрачный: фоновое кольцо не просвечивает сквозь подписи (QA SQ-03) */
+    background: var(--c-surface-sunk);
+    pointer-events: auto;
+  }
+
+  .topic,
+  .topic[data-topic] {
+    position: relative;
+    inset: auto;
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 10px;
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .topic::before {
+    inset: 0;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .topic__mark {
+    width: 7px;
+    height: 7px;
+  }
+
+  .topic[aria-selected="true"]::before {
+    border-color: var(--c-teal);
+    background: var(--c-surface);
+  }
+
+  .showcase__slot {
+    margin-top: 14px;
+  }
+
+  .showcase__slot::before,
+  .showcase__slot::after {
+    display: none;
+  }
+
+  .showcase__panel {
+    padding: 18px 18px 8px;
+  }
+}
+
+/* 320–374: три сегмента в 288 px — без точек (у всех, чтобы ширины не прыгали при выборе);
+   выбранный сегмент виден по заливке и бирюзовой рамке */
+@media (max-width: 374px) {
+  .topic,
+  .topic[data-topic] {
+    padding: 0 8px;
+    font-size: 0.86rem;
+  }
+
+  .topic__mark {
+    display: none;
+  }
+}
+
+/* ================= Service modal (подробности направления) ================= */
+.service-modal {
+  width: min(560px, calc(100vw - 24px));
+}
+
+/* Прокручивается содержимое, а кнопка закрытия остаётся на месте (QA SQ-02) */
+.service-modal .modal__panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* крестик — в своей строке над прокручиваемой частью: текст никогда не уходит под него */
+.service-modal .modal__close {
+  position: static;
+  flex: none;
+  align-self: flex-end;
+  margin: clamp(10px, 2vw, 16px) clamp(10px, 2vw, 16px) 0 0;
+}
+
+.service-modal__scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 clamp(22px, 4vw, 36px) clamp(22px, 4vw, 36px);
+}
+
+.service-modal .modal__head {
+  padding-right: 0;
+  margin-bottom: 8px;
+}
+
+.service-modal__block {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--c-border);
+}
+
+.service-modal__list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.service-modal__list li {
+  position: relative;
+  padding-left: 28px;
+}
+
+/* Галочка — как .checklist в раскрытой панели решения */
+.service-modal__list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.42em;
+  width: 14px;
+  height: 8px;
+  border-left: 1.6px solid var(--c-teal);
+  border-bottom: 1.6px solid var(--c-teal);
+  transform: rotate(-45deg);
+}
+
+/* Кейс — утопленная плашка, как визуал в карточке кейса */
+.service-modal__case {
+  display: grid;
+  gap: 6px;
+  margin-top: 22px;
+  padding: 18px 20px 8px;
+  border-radius: var(--radius-md);
+  background: var(--c-bg);
+}
+
+.service-modal__case .label {
+  margin-bottom: 2px;
+}
+
+.service-modal__metric {
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.service-modal__case-text {
+  color: var(--c-text-2);
+  font-size: 0.95rem;
+}
+
+.service-modal__note {
+  color: var(--c-accent-ink);
+  font-size: 0.88rem;
+}
+
+.service-modal__case .link-arrow {
+  justify-self: start;
+}
+
+.service-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.service-modal__actions .btn {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 560px) {
+  .service-modal__actions .btn {
+    flex: 0 0 auto;
+  }
+}
+
+/* Текстовая ссылка со стрелкой: второстепенный переход, область нажатия 44 px */
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--c-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--c-ink-rgb) / 0.28);
+  text-underline-offset: 0.3em;
+}
+
+.link-arrow svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  transition: transform var(--dur) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link-arrow:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .link-arrow:hover svg {
+    transform: translateX(3px);
+  }
 }
 
 /* ================= Ambient scene (фон страницы) =================
@@ -1773,7 +2423,8 @@ legend.field__label {
 .section-head::after,
 .statement__inner::after,
 .platforms::after,
-.contact__response::after {
+.contact__response::after,
+.showcase__hint::after {
   content: "";
   position: absolute;
   inset: 0;

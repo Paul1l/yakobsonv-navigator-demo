@@ -1,11 +1,12 @@
 import { el, esc, rich } from '../lib/dom.js';
 import { icons } from '../lib/icons.js';
 import { hero, site } from '../data/content.js';
-import { JarvisScene } from './JarvisScene.js';
+import { Showcase } from './Showcase.js';
 
-export function Hero({ debug = false } = {}) {
-  const scene = JarvisScene({ debug });
-  // Порядок в разметке: текст и основная кнопка, затем графика — так же на телефоне
+export function Hero({ debug = false, onDetails } = {}) {
+  // Справа — интерактивная орбита направлений с карточкой (Showcase)
+  const showcase = Showcase({ debug, onDetails });
+  // Порядок в разметке: текст и основная кнопка, затем орбита, переключатели и карточка — так же на телефоне
   const root = el(`
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="container hero__grid">
@@ -19,10 +20,10 @@ export function Hero({ debug = false } = {}) {
           </div>
           <p class="hero__meta"><span class="hero__dot" aria-hidden="true"></span>${esc(site.owner)} · ${esc(site.responseTime)}</p>
         </div>
-        <div class="hero__visual" data-slot="scene"></div>
+        <div class="hero__visual" data-slot="showcase"></div>
       </div>
     </section>
   `);
-  root.querySelector('[data-slot="scene"]').append(scene.el);
-  return { el: root, mount: () => scene.mount(), destroy: () => scene.destroy() };
+  root.querySelector('[data-slot="showcase"]').append(showcase.el);
+  return { el: root, showcase, mount: () => showcase.mount(), destroy: () => showcase.destroy() };
 }

@@ -11,6 +11,7 @@ const TAU = Math.PI * 2;
 const SIZE = { wide: 0.6, narrow: 0.85 };
 // Передача кольца с первого экрана: длина пути в высотах сцены героя и доля пути, за которую кольцо героя растворяется
 const HANDOFF_RANGE = 0.85;
+const HANDOFF_AFTER = 40;
 const HANDOFF_FADE = 0.12;
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -21,8 +22,8 @@ const smooth = (k) => k * k * (3 - 2 * k);
  * Фоновая сцена всей страницы: то же кольцо и ядро, что на первом экране, на фиксированном холсте под содержимым.
  * Кольцо первого экрана не исчезает, а уходит с него: с началом прокрутки фоновая сцена подхватывает его на том же
  * месте и в том же размере (кольцо героя растворяется за первые 12 % пути), затем, следуя за прокруткой, оно
- * уменьшается, приглушается и уплывает на свою траекторию. На телефоне передача начинается, когда сцена героя
- * показалась целиком. Дальше кольцо сопровождает посетителя:
+ * уменьшается, приглушается и уплывает на свою траекторию. Передача начинается, когда блок направлений (орбита,
+ * метки, карточка) показан целиком, — пока посетитель выбирает и читает, кольцо на месте. Дальше оно сопровождает:
  * - прокрутка: кольцо перемещается по экрану по мере движения по странице и ускоряется от скорости прокрутки;
  * - мышь: края кольца и ядра тянутся к курсору;
  * - нажатия дают разный отклик: «Обсудить …» — импульс от ядра и разгон; ссылки и кнопки — волна с засечками
@@ -58,6 +59,7 @@ export function AmbientScene() {
   let ambientOpacity = 0.6;
   let palette = scenePalette(DEFAULT_PALETTE);
   let heroScene = null;
+  let heroBlock = null; // блок направлений первого экрана (Showcase): орбита, метки и карточка
   let scrollFrame = 0;
   let mounted = false;
   const pos = { x: 0, y: 0, R: 0 };
@@ -87,13 +89,15 @@ export function AmbientScene() {
     if (canvas.style.opacity !== v) canvas.style.opacity = v;
   }
 
-  // Насколько кольцо ушло с первого экрана: 0 — пока сцена героя на своём месте и видна целиком,
-  // 1 — через HANDOFF_RANGE её высоты прокрутки. Без сцены героя — сразу 1.
+  // Насколько кольцо ушло с первого экрана: 0 — пока посетитель смотрит на блок направлений (орбита, метки,
+  // карточка: передача начинается, когда низ карточки показался и прокручен ещё на HANDOFF_AFTER px; на телефоне
+  // это ниже первого экрана), 1 — через HANDOFF_RANGE высоты сцены прокрутки дальше. Без сцены героя — сразу 1.
   function measureHandoff() {
     if (!heroScene) return 1;
     const r = heroScene.getBoundingClientRect();
     if (!r.height) return 1;
-    const start = Math.max(0, r.top + window.scrollY + r.height - H); // прокрутка, при которой сцена видна целиком
+    const block = heroBlock?.getBoundingClientRect() ?? r;
+    const start = Math.max(0, block.bottom + window.scrollY - H + HANDOFF_AFTER);
     return clamp01((window.scrollY - start) / (r.height * HANDOFF_RANGE));
   }
 
@@ -366,6 +370,7 @@ export function AmbientScene() {
       if (mounted) return;
       mounted = true;
       heroScene = document.querySelector('.hero .scene');
+      heroBlock = document.querySelector('.hero .showcase');
       canvas.style.transition = 'none'; // прозрачность ведёт прокрутка — без запаздывания CSS-перехода
       resize();
       window.addEventListener('scroll', onScroll, { passive: true });

@@ -11,6 +11,7 @@ import { ContactSection } from './components/ContactSection.js';
 import { ContactDialog } from './components/ContactDialog.js';
 import { Footer } from './components/Footer.js';
 import { AmbientScene } from './components/AmbientScene.js';
+import { ServiceDialog } from './components/ServiceDialog.js';
 import { watchThemeStorage } from './lib/theme.js';
 
 // ?debug — служебный доступ к сцене для проверок (window.__jarvis, window.__app)
@@ -19,8 +20,11 @@ const debug = new URLSearchParams(window.location.search).has('debug');
 export function createApp(container) {
   const drawer = MobileDrawer();
   const dialog = ContactDialog();
+  // Подробности направления с первого экрана; после закрытия показ остаётся в ручном режиме на той же теме
+  const details = ServiceDialog({ onClose: () => hero.showcase.detailsClosed() });
   const header = Header({ onMenu: (burger) => drawer.open(burger) });
-  const sections = [Hero({ debug }), Solutions(), Cases(), Process(), ProjectCabinetDemo(), Pricing(), ContactSection()];
+  const hero = Hero({ debug, onDetails: (direction, trigger) => details.open(direction, trigger) });
+  const sections = [hero, Solutions(), Cases(), Process(), ProjectCabinetDemo(), Pricing(), ContactSection()];
   const footer = Footer();
   const ambient = AmbientScene(); // фоновая сцена всей страницы — холст под содержимым, вне #app
 
@@ -29,7 +33,7 @@ export function createApp(container) {
   main.tabIndex = -1;
   sections.forEach((section) => main.append(section.el));
 
-  const parts = [header, ...sections, footer, drawer, dialog];
+  const parts = [header, ...sections, footer, drawer, dialog, details];
   let detachGlow = null;
   let unwatchTheme = null;
 
@@ -41,6 +45,11 @@ export function createApp(container) {
     if (drawer.contains(button)) {
       await drawer.close({ restoreFocus: false });
       trigger = header.burger;
+    } else if (details.contains(button)) {
+      // «Обсудить задачу» из подробностей: окно подробностей закрывается, после формы фокус — на «Подробнее»
+      const from = details.trigger;
+      await details.close({ restoreFocus: false });
+      trigger = from ?? button;
     }
     const { task, source, context } = button.dataset;
     dialog.open({ task, source, context }, trigger);
@@ -49,7 +58,7 @@ export function createApp(container) {
   return {
     ambient,
     mount() {
-      container.replaceChildren(header.el, main, footer.el, drawer.el, dialog.el);
+      container.replaceChildren(header.el, main, footer.el, drawer.el, dialog.el, details.el);
       parts.forEach((part) => part.mount?.());
       container.before(ambient.el);
       ambient.mount();
