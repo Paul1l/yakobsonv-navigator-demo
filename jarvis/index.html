@@ -3,54 +3,155 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>yakobsonv — сайты, поисковый трафик и ИИ</title>
-  <meta name="description" content="Разрабатываем сайты, привлекаем клиентов из поиска и автоматизируем рабочие процессы. Лично ведём проект от первой задачи до результата.">
-  <!--
-    Прототип: закрыт от индексации. При переносе в рабочий проект title, description,
-    canonical, hreflang (/ru/, /en/), robots и счётчики берутся из рабочего шаблона,
-    а эта строка не переносится.
-  -->
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f4f3ef">
-  <!-- Тема до загрузки стилей — без вспышки светлой страницы (логика переключения — src/lib/theme.js) -->
-  <script>
-    try {
-      if (localStorage.getItem('yakobsonv-theme') === 'dark') {
-        document.documentElement.dataset.theme = 'dark';
-        document.querySelector('meta[name="color-scheme"]').content = 'dark';
-        document.querySelector('meta[name="theme-color"]').content = '#0e0d0b';
-      }
-    } catch (e) {}
-  </script>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="src/styles/tokens.css">
-  <link rel="stylesheet" href="src/styles/base.css">
-  <link rel="stylesheet" href="src/styles/components.css">
-  <script type="module" src="src/main.js"></script>
+  <meta name="theme-color" content="#f5f5f0">
+  <meta name="description" content="Интерактивный гид Yakobson V.: сайты, поисковый трафик и автоматизация. Прокрутите страницу, чтобы познакомиться с направлениями.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Yakobson V. — Джарвис-гид</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="./guide.js" type="module"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Перейти к содержанию</a><nav aria-label="Варианты дизайна (демо)" style="background:#000;color:#a89e8c;font:500 13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;padding:6px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:center;align-items:center;position:relative;z-index:60"><span>Демо:</span><a href="/yakobsonv-navigator-demo/" style="color:#d9cfbe;text-decoration:underline;text-underline-offset:3px;padding:2px 0">Основной</a><a href="/yakobsonv-navigator-demo/jarvis/" aria-current="page" style="color:#fff;font-weight:600;text-decoration:none;border-bottom:2px solid #d4b896;padding:2px 0">Джарвис-гид</a><a href="/yakobsonv-navigator-demo/ru/" style="color:#d9cfbe;text-decoration:underline;text-underline-offset:3px;padding:2px 0">Навигатор по задачам</a></nav>
-  <div id="app"></div>
-  <!-- Без JavaScript: краткие описания направлений и ссылки на страницы услуг yakobsonv.com.
-       Тексты и адреса повторяют src/data/directions.js (text, liveHref) — при правке менять в обоих местах. -->
-  <noscript>
-    <div class="noscript">
-      <p>Страница прототипа собирается скриптом. Коротко о направлениях:</p>
-      <ul>
-        <li><strong>Сайт.</strong> Создаём новый сайт или обновляем текущий: понятная структура, дизайн, мобильная
-          версия и формы заявок. <a href="https://yakobsonv.com/ru/services/#sites">Подробнее об услуге</a></li>
-        <li><strong>Трафик.</strong> Работаем с поисковым спросом, техническим состоянием и содержанием страниц,
-          чтобы из поиска приходили заинтересованные посетители.
-          <a href="https://yakobsonv.com/ru/services/#semantics">Подробнее об услуге</a></li>
-        <li><strong>Автоматизация.</strong> Сокращаем ручную работу с заявками, документами и повторяющимися
-          действиями: интеграции с CRM, почтой и Telegram и ИИ-помощники.
-          <a href="https://yakobsonv.com/ru/services/#aiops">Подробнее об услуге</a></li>
-      </ul>
-      <p>Все услуги — <a href="https://yakobsonv.com/ru/services/">yakobsonv.com/ru/services</a>. Связаться:
-        <a href="https://t.me/yakobsonv">Telegram @yakobsonv</a> или
-        <a href="mailto:yakobsonv@icloud.com">yakobsonv@icloud.com</a>.</p>
+  <header class="header">
+    <a class="brand" href="#hello" aria-label="Yakobson V. — в начало">yakobsonv<span>.</span></a>
+    <nav class="header-nav" aria-label="Основные разделы">
+      <a href="#site">Сайты</a><a href="#traffic">Трафик</a><a href="#automation">Автоматизация</a>
+    </nav>
+    <div class="header-actions">
+      <button class="theme-button icon-button" id="theme-toggle" type="button" aria-label="Включить тёмную тему" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2Z"/></svg></button>
+      <a class="header-contact" href="#contact">Обсудить проект <span aria-hidden="true">↗</span></a>
     </div>
-  </noscript>
+  </header>
+
+  <main id="main">
+    <div class="journey" id="journey">
+      <div class="guide-layer" aria-hidden="true">
+        <svg class="journey-track" id="journey-track" preserveAspectRatio="none"><path id="route-path"/></svg>
+        <svg class="emission-rays" id="connections" preserveAspectRatio="none"></svg>
+        <div class="guide" id="guide">
+          <div class="guide-halo"></div><div class="emission-core"></div>
+          <svg class="orb" viewBox="0 0 400 400" role="presentation">
+            <defs>
+              <radialGradient id="core-wash"><stop offset="0" stop-color="currentColor" stop-opacity=".17"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
+              <linearGradient id="arc-wash" x1="0" y1="0" x2="1" y2="1"><stop stop-color="currentColor" stop-opacity=".12"/><stop offset=".55" stop-color="currentColor" stop-opacity=".85"/><stop offset="1" stop-color="currentColor" stop-opacity=".12"/></linearGradient>
+            </defs>
+            <circle cx="200" cy="200" r="142" fill="url(#core-wash)"/>
+            <g class="orb-ticks" id="orb-ticks"></g>
+            <g class="orb-spin orbit-outer">
+              <circle cx="200" cy="200" r="177"/>
+              <circle cx="200" cy="200" r="170" stroke-dasharray="98 12 3 16 161 80"/>
+              <circle class="orb-strong" cx="200" cy="200" r="156" stroke-dasharray="226 410 76 268"/>
+              <circle cx="200" cy="200" r="152" stroke-dasharray="4 7"/>
+            </g>
+            <g class="orb-spin orbit-inner">
+              <ellipse cx="200" cy="200" rx="148" ry="139" transform="rotate(12 200 200)"/>
+              <ellipse cx="200" cy="200" rx="143" ry="152" transform="rotate(48 200 200)"/>
+              <ellipse cx="200" cy="200" rx="151" ry="144" transform="rotate(-18 200 200)"/>
+              <circle class="orb-strong" cx="200" cy="200" r="145" stroke-dasharray="62 91 119 368 171 100"/>
+              <circle cx="200" cy="200" r="117" stroke-dasharray="1 8"/>
+            </g>
+            <circle class="core-track" cx="200" cy="200" r="83"/>
+            <circle class="core-track" cx="200" cy="200" r="72"/>
+            <g class="orb-core" id="orb-core"></g>
+            <g class="orb-cross"><path d="M200 99v8m0 186v8M99 200h8m186 0h8"/><circle cx="200" cy="200" r="3" fill="currentColor" stroke="none"/></g>
+          </svg>
+          <div class="guide-caption"><span class="status-dot"></span><span id="guide-caption-text">Джарвис · ваш гид</span></div>
+        </div>
+      </div>
+
+      <section class="scene hero" id="hello" data-scene="hello" aria-labelledby="hero-title">
+        <div class="guide-anchor" aria-hidden="true"></div>
+        <div class="hero-content">
+          <div class="eyebrow"><span class="eyebrow-line"></span>САЙТЫ · ПОИСКОВЫЙ ТРАФИК · ИИ</div>
+          <h1 id="hero-title">Ваш сайт.<br>Новая <em>точка роста.</em></h1>
+          <p class="hero-description">Сайт, продвижение и автоматизация.<br>Покажем, как всё работает вместе.</p>
+          <div class="hero-actions"><a class="button button-dark" href="#site" data-tour-start>Начать знакомство <span aria-hidden="true">↓</span></a><a class="text-link" href="#contact">Обсудить задачу <span aria-hidden="true">↗</span></a></div>
+          <div class="guide-invitation"><span class="mini-orbit" aria-hidden="true"></span><p>Прокрутите страницу.<br><span>Информация появится из гида.</span></p></div>
+        </div>
+        <div class="hero-footer"><span>ИНТЕРАКТИВНОЕ ЗНАКОМСТВО</span><span class="scroll-cue">Листайте вниз <span aria-hidden="true">↓</span></span><span>YAKOBSON V.</span></div>
+      </section>
+
+      <section class="scene chapter chapter-right" id="site" data-scene="site" aria-labelledby="site-title">
+        <div class="guide-anchor" aria-hidden="true"></div>
+        <div class="chapter-content">
+          <div class="text-packet" data-packet="0">
+            <p class="eyebrow"><span class="chapter-number">01</span>САЙТ</p>
+            <h2 id="site-title">Сначала —<br><em>понятный сайт.</em></h2>
+          </div>
+          <p class="text-packet section-intro" data-packet="1">Посетитель сразу понимает, чем вы полезны.<br class="desktop-break"> И легко делает следующий шаг.</p>
+          <div class="text-packet detail-packet" data-packet="2">
+            <ul class="quiet-list"><li>Структура и дизайн</li><li>Удобство на любом экране</li><li>Формы и аналитика</li></ul>
+            <button class="detail-link" data-topic="site" type="button">Как создаём сайты <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+        <div class="chapter-footnote" aria-hidden="true"><span>01 / ОСНОВА</span><span>Продолжайте прокрутку ↓</span></div>
+      </section>
+
+      <section class="scene chapter chapter-left" id="traffic" data-scene="traffic" aria-labelledby="traffic-title">
+        <div class="guide-anchor" aria-hidden="true"></div>
+        <div class="chapter-content">
+          <div class="text-packet" data-packet="0">
+            <p class="eyebrow"><span class="chapter-number">02</span>ПОИСКОВЫЙ ТРАФИК</p>
+            <h2 id="traffic-title">Теперь —<br><em>ваши клиенты.</em></h2>
+          </div>
+          <p class="text-packet section-intro" data-packet="1">Помогаем встретиться в поиске с людьми,<br class="desktop-break"> которым нужны ваши услуги.</p>
+          <div class="text-packet detail-packet" data-packet="2">
+            <ul class="quiet-list"><li>Страницы под реальный спрос</li><li>Техническое SEO</li><li>Результаты в понятных отчётах</li></ul>
+            <button class="detail-link" data-topic="traffic" type="button">Как привлекаем трафик <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+        <div class="chapter-footnote" aria-hidden="true"><span>02 / СПРОС</span><span>Продолжайте прокрутку ↓</span></div>
+      </section>
+
+      <section class="scene chapter chapter-right automation" id="automation" data-scene="automation" aria-labelledby="automation-title">
+        <div class="guide-anchor" aria-hidden="true"></div>
+        <div class="chapter-content">
+          <div class="text-packet" data-packet="0">
+            <p class="eyebrow"><span class="chapter-number">03</span>АВТОМАТИЗАЦИЯ И ИИ</p>
+            <h2 id="automation-title">Меньше рутины.<br><em>Больше времени.</em></h2>
+          </div>
+          <p class="text-packet section-intro" data-packet="1">Связываем повторяющиеся действия<br class="desktop-break"> в понятный рабочий процесс.</p>
+          <div class="text-packet detail-packet" data-packet="2">
+            <ul class="quiet-list"><li>Передача заявок и уведомления</li><li>Помощь с документами</li><li>Интеграции ваших сервисов</li></ul>
+            <button class="detail-link" data-topic="automation" type="button">Что можно автоматизировать <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+        <div class="chapter-footnote" aria-hidden="true"><span>03 / ПРОЦЕССЫ</span><span>Остался один шаг ↓</span></div>
+      </section>
+
+      <section class="scene chapter chapter-left contact-scene" id="contact" data-scene="contact" aria-labelledby="contact-title">
+        <div class="guide-anchor" aria-hidden="true"></div>
+        <div class="chapter-content contact-content">
+          <div class="text-packet" data-packet="0">
+            <p class="eyebrow"><span class="chapter-number">04</span>СЛЕДУЮЩИЙ ШАГ</p>
+            <h2 id="contact-title">Есть задача?<br><em>Давайте обсудим.</em></h2>
+          </div>
+          <p class="text-packet section-intro" data-packet="1">Расскажите, что хотите изменить.<br>Можно без готового технического задания.</p>
+          <div class="text-packet" data-packet="2">
+            <div class="contact-actions"><a class="button button-dark" href="https://t.me/yakobsonv" target="_blank" rel="noopener noreferrer">Написать в Telegram <span aria-hidden="true">↗</span></a><a class="text-link" href="mailto:yakobsonv@icloud.com">На почту <span aria-hidden="true">↗</span></a></div>
+            <p class="contact-person">Владислав Якобсон</p>
+          </div>
+        </div>
+        <div class="chapter-footnote" aria-hidden="true"><span>04 / ВАШ ПРОЕКТ</span><span>Спасибо за знакомство</span></div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="journey-navigation" aria-label="Переход к этапам">
+    <a href="#hello" data-step="hello" aria-label="Начало" aria-current="step"><span class="nav-dot"></span><span class="nav-name">Начало</span></a>
+    <a href="#site" data-step="site" aria-label="Сайт"><span class="nav-dot"></span><span class="nav-name">Сайт</span></a>
+    <a href="#traffic" data-step="traffic" aria-label="Трафик"><span class="nav-dot"></span><span class="nav-name">Трафик</span></a>
+    <a href="#automation" data-step="automation" aria-label="Автоматизация"><span class="nav-dot"></span><span class="nav-name">ИИ</span></a>
+    <a href="#contact" data-step="contact" aria-label="Контакт"><span class="nav-dot"></span><span class="nav-name">Контакт</span></a>
+  </aside>
+  <div class="guide-controls"><span class="journey-position" id="journey-position" aria-hidden="true">01 <span>/ 05</span></span><button type="button" class="motion-toggle" id="motion-toggle" aria-pressed="true"><span class="motion-icon" aria-hidden="true">Ⅱ</span><span class="motion-label">Без анимации</span></button></div>
+  <footer class="footer"><a class="brand" href="#hello">yakobsonv<span>.</span></a><span>Джарвис-гид · интерактивный прототип</span><a href="https://yakobsonv.com/" target="_blank" rel="noopener noreferrer">Основной сайт <span aria-hidden="true">↗</span></a></footer>
+
+  <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-shell"><div class="dialog-top"><span class="eyebrow" id="detail-category"></span><button class="dialog-close icon-button" id="dialog-close" type="button" aria-label="Закрыть подробности">×</button></div><h2 id="detail-title"></h2><p id="detail-description"></p><ul id="detail-list"></ul><div class="dialog-bottom"><p>Объём работ определяем под вашу задачу.</p><button type="button" class="button button-dark" id="dialog-contact">Обсудить задачу <span aria-hidden="true">↗</span></button></div></div>
+  </dialog>
+  <noscript><style>.guide-controls,.theme-button,.guide-layer,.detail-link{display:none}</style><div class="noscript-note">Основная информация доступна без JavaScript. Для анимации гида и подробностей включите его.</div></noscript>
 </body>
 </html>
