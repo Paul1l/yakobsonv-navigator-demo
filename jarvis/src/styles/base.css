@@ -1,0 +1,438 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Блокировка прокрутки под открытым меню или диалогом */
+html.is-locked {
+  overflow: hidden;
+}
+
+/* У html фона нет: фон body переходит на холст документа, и фоновая сцена (.ambient-scene, z-index: -1)
+   рисуется над ним, но под содержимым */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 900px) {
+  body {
+    font-size: 1.0625rem;
+  }
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: rgb(var(--c-accent-rgb) / 0.24);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-text);
+  outline-offset: 3px;
+}
+
+.container {
+  width: 100%;
+  max-width: calc(var(--container) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: -80px;
+  z-index: 100;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--c-btn);
+  color: var(--c-btn-text);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top var(--dur) var(--ease);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+.noscript {
+  max-width: 640px;
+  margin: 15vh auto;
+  padding: 0 var(--gutter);
+  font-size: 1.1rem;
+}
+
+.noscript p + p,
+.noscript ul + p {
+  margin-top: 1em;
+}
+
+.noscript ul {
+  display: grid;
+  gap: 0.8em;
+  margin-top: 1em;
+  padding-left: 1.2em;
+}
+
+/* Serif italic для отдельных слов заголовков */
+.serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Тёмная тема: курсив-акцент в заголовках — шампань, как на живом сайте (10:1 на фоне) */
+:root[data-theme="dark"] .serif {
+  color: var(--c-accent);
+}
+
+/* ---------- Кнопки ---------- */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 26px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.btn--primary {
+  background: var(--c-btn);
+  color: var(--c-btn-text);
+  box-shadow: 0 12px 26px -16px rgb(var(--c-shadow-rgb) / 0.7);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--c-text);
+  border-color: rgb(var(--c-ink-rgb) / 0.22);
+}
+
+.btn--sm {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 0.95rem;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+/* Текстовая кнопка: второстепенное действие без рамки, область нажатия 44px */
+.btn--text {
+  min-height: 44px;
+  padding: 0 4px;
+  background: none;
+  color: var(--c-text);
+  font-size: 0.95rem;
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--c-ink-rgb) / 0.3);
+  text-underline-offset: 0.3em;
+}
+
+.btn__arrow {
+  transition: transform var(--dur) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover {
+    background: var(--c-btn-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn--ghost:hover {
+    background: rgb(var(--c-ink-rgb) / 0.04);
+    border-color: rgb(var(--c-ink-rgb) / 0.4);
+  }
+
+  .btn--text:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .btn:hover .btn__arrow {
+    transform: translateX(3px);
+  }
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  cursor: progress;
+  opacity: 0.78;
+  transform: none;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .icon-btn:hover {
+    border-color: var(--c-border-strong);
+    background: var(--c-surface-hi);
+  }
+}
+
+/* ---------- Типографика разделов ---------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--c-text-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  flex: none;
+  background: var(--c-accent);
+}
+
+@media (max-width: 374px) {
+  .eyebrow {
+    gap: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .eyebrow::before {
+    width: 14px;
+  }
+}
+
+.section {
+  padding-block: var(--section-y);
+  scroll-margin-top: var(--header-h);
+}
+
+.section-head {
+  display: grid;
+  gap: 18px;
+  max-width: 780px;
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+
+.section-title {
+  font-size: clamp(2rem, 1.25rem + 2.7vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.032em;
+  text-wrap: balance;
+}
+
+.section-lead {
+  max-width: 40em;
+  color: var(--c-text-2);
+  font-size: clamp(1.02rem, 0.98rem + 0.25vw, 1.15rem);
+}
+
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Мягкая подсветка под курсором: координаты ставит lib/glow.js, только для мыши */
+.glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    440px circle at var(--mx, 50%) var(--my, 0%),
+    rgb(var(--c-accent-rgb) / 0.13),
+    rgb(var(--c-teal-rgb) / 0.04) 38%,
+    transparent 62%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .glow:hover::before {
+    opacity: 1;
+  }
+}
+
+.badge-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px dashed rgb(var(--c-accent-rgb) / 0.75);
+  border-radius: var(--radius-pill);
+  background: rgb(var(--c-accent-rgb) / 0.09);
+  color: var(--c-accent-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.label {
+  color: var(--c-text-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.checklist {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 28px;
+}
+
+.checklist li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.42em;
+  width: 14px;
+  height: 8px;
+  border-left: 1.6px solid var(--c-teal);
+  border-bottom: 1.6px solid var(--c-teal);
+  transform: rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
