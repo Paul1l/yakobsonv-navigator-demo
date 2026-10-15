@@ -1,5 +1,6 @@
 :root{color-scheme:light;--paper:#f5f5f0;--panel:#fcfcf8;--ink:#272a23;--muted:#71776c;--teal:#3b938c;--soft:#e9eee6;--line:#dce0d6;--orb-size:360px;--header-height:84px;--gutter:clamp(28px,5.5vw,88px)}
-:root[data-theme=dark]{color-scheme:dark;--paper:#101918;--panel:#162321;--ink:#edf1e8;--muted:#a3b5aa;--teal:#70c8bd;--soft:#20322d;--line:#2b3c35}
+/* Тёмная тема — палитра основного сайта yakobsonv.com: почти чёрный фон, кремовый текст, акцент «шампань» */
+:root[data-theme=dark]{color-scheme:dark;--paper:#0e0d0b;--panel:#1c1916;--ink:#f2e9da;--muted:#a89e8c;--teal:#d4b896;--soft:#161412;--line:#2a2521}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:110px}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:clip}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}button,a{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:6px}em{font-family:Georgia,'Times New Roman',serif;font-weight:400}svg{display:block}h1,h2,p{margin-top:0}.skip-link{position:fixed;left:20px;top:-100px;z-index:100;background:var(--ink);color:var(--paper);padding:12px 20px}.skip-link:focus{top:10px}
 .header{height:var(--header-height);display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 var(--gutter);position:sticky;top:0;z-index:30;background:var(--paper)}.brand{font-size:23px;font-weight:650;letter-spacing:-1.2px;white-space:nowrap}.brand span{color:var(--teal)}.header-nav{display:flex;gap:28px;align-items:center;margin-left:auto;margin-right:22px;font-size:14px;color:var(--muted)}.header-nav a{padding:12px 0}.header-nav a:hover{color:var(--ink)}.header-actions{display:flex;align-items:center;gap:14px}.icon-button{border:1px solid var(--line);border-radius:50%;background:var(--panel);width:42px;height:42px;display:grid;place-items:center}.icon-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.header-contact{display:flex;gap:18px;align-items:center;background:var(--ink);color:var(--paper);padding:12px 19px;border-radius:28px;font-size:13px;font-weight:500}.header-contact:hover{opacity:.88}
 .journey{position:relative;isolation:isolate}.scene{position:relative;scroll-margin-top:0}.hero{display:flex;align-items:center;min-height:max(710px,calc(100svh - var(--header-height)));padding:70px var(--gutter) 150px}.hero-content{position:relative;width:60%;z-index:4}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:500;display:flex;align-items:center;gap:11px;margin:0 0 24px;color:var(--muted);line-height:1.6}.eyebrow-line{display:block;width:23px;height:1px;background:var(--teal)}h1{font-size:clamp(48px,5vw,80px);line-height:1.08;font-weight:550;letter-spacing:-3px;margin-bottom:28px}h1 em{white-space:nowrap}.hero-description{font-size:clamp(16px,1.35vw,19px);line-height:1.75;color:var(--muted);margin-bottom:30px}.hero-actions,.contact-actions{display:flex;align-items:center;gap:28px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-height:51px;padding:14px 23px;border-radius:30px;border:1px solid var(--line);font-size:14px;font-weight:500;background:var(--panel);transition:transform .2s}.button-dark{background:var(--ink);color:var(--paper);border-color:var(--ink)}.button:hover{transform:translateY(-2px)}.text-link{display:inline-flex;align-items:center;gap:15px;font-size:14px;padding:12px 0;border-bottom:1px solid transparent}.text-link:hover{border-bottom-color:var(--teal)}.guide-invitation{display:flex;align-items:center;gap:13px;margin-top:48px;font-size:12px}.guide-invitation p{margin:0;color:var(--ink);line-height:1.7}.guide-invitation p span{color:var(--muted)}.mini-orbit{width:30px;height:30px;border:1px solid var(--line);border-radius:50%;position:relative}.mini-orbit:after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px color-mix(in srgb,var(--teal) 10%,transparent)}.hero-footer{position:absolute;bottom:28px;left:var(--gutter);right:var(--gutter);display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:10px;letter-spacing:1.7px;color:var(--muted)}.scroll-cue{letter-spacing:.3px;font-size:12px;display:flex;align-items:center;gap:14px}.scroll-cue span{font-size:20px}
@@ -22,3 +23,130 @@
 .guide.is-travelling .guide-caption{opacity:0}
 .hero-footer>span:last-child{display:none}
 @media(prefers-reduced-motion:reduce){.guide-caption{transition:none}}
+
+
+/* ===== Плавность и интерактивные попапы (15.10.2026) ===== */
+
+/* Кольца гида — отдельные слои SVG, вращение всего слоя: браузер композитит его видеокартой без перерисовки */
+.orb{position:relative}
+.orb-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.orb-spin{transform-origin:50% 50%;will-change:transform}
+.orb-core{animation:none}
+.orb-core-layer{transform-origin:50% 50%;will-change:transform;animation:core-float 10s ease-in-out infinite}
+.motion-off .orb-core-layer,.modal-open .orb-core-layer{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){html:not(.motion-opt-in) .orb-core-layer{animation:none}}
+:root[data-theme=dark] .detail-dialog::backdrop{background:#0e0d0bb3}
+:root[data-theme=dark] .detail-dialog{box-shadow:0 40px 100px #000a}
+
+/* Попап направления: «нырок» из нажатой кнопки */
+.detail-dialog{max-width:680px;overflow:hidden}
+.detail-dialog[open]{display:flex;flex-direction:column}
+.detail-dialog.is-diving{animation:dlg-dive .48s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 50%}
+.detail-dialog.is-diving::backdrop{animation:dlg-fade .4s ease both}
+@keyframes dlg-dive{from{opacity:0;transform:translate(var(--from-x,0px),var(--from-y,0px)) scale(.2)}55%{opacity:1}to{opacity:1;transform:none}}
+@keyframes dlg-fade{from{opacity:0}to{opacity:1}}
+.detail-dialog .dialog-shell{display:flex;flex-direction:column;min-height:0;max-height:calc(100dvh - 50px);padding:0}
+.detail-dialog .dialog-top{padding:22px 28px 0;margin-bottom:14px;flex:none}
+.dlg-nav{display:flex;align-items:center;gap:6px}
+.dlg-nav [data-go]{font-family:Arial,sans-serif;font-size:18px;line-height:1}
+.dlg-pos{font-size:11px;letter-spacing:1px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:40px;text-align:center}
+.dlg-body{overflow-y:auto;overscroll-behavior:contain;padding:0 28px 6px;min-height:0;flex:1 1 auto}
+.dlg-body.is-switching{animation:dlg-switch .38s cubic-bezier(.2,.8,.2,1)}
+.dlg-body[data-dir="-1"].is-switching{animation-name:dlg-switch-back}
+@keyframes dlg-switch{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+@keyframes dlg-switch-back{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
+.detail-dialog h2{outline:none;margin-bottom:12px}
+.detail-dialog .dlg-lead{margin-bottom:16px}
+.dlg-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto;scrollbar-width:none}
+.dlg-tabs::-webkit-scrollbar{display:none}
+.dlg-tabs [role=tab]{flex:none;border:0;background:none;padding:10px 12px;min-height:44px;font:inherit;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:color .2s,border-color .2s}
+.dlg-tabs [role=tab]:hover{color:var(--ink)}
+.dlg-tabs [role=tab][aria-selected=true]{color:var(--ink);border-bottom-color:var(--teal)}
+.dlg-panel{outline:none;padding-bottom:12px}
+.dlg-panel:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:6px}
+.dlg-panel.is-in{animation:dlg-panel .32s ease both}
+@keyframes dlg-panel{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.detail-dialog .dlg-text{color:var(--ink);margin-bottom:14px}
+.dlg-kicker{display:block;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.dlg-outcome{border-left:2px solid var(--teal);padding:4px 0 4px 16px}
+.detail-dialog .dlg-outcome p{color:var(--ink);margin:0;line-height:1.6}
+.detail-dialog .dlg-checks{list-style:none;margin:0;padding:0}
+.detail-dialog .dlg-checks li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;animation:dlg-item .4s ease both;animation-delay:calc(var(--i,0)*60ms)}
+.detail-dialog .dlg-checks li:before{display:none}
+.dlg-check{flex:none;width:18px;height:18px;border-radius:50%;border:1px solid var(--teal);position:relative;margin-top:2px}
+.dlg-check:after{content:'';position:absolute;left:5.5px;top:2.5px;width:4px;height:8px;border:solid var(--teal);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+@keyframes dlg-item{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.dlg-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px}
+.dlg-step,.dlg-plan{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px;min-height:44px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s,background-color .2s}
+.dlg-step:hover,.dlg-plan:hover{border-color:var(--teal)}
+.dlg-step[aria-pressed=true],.dlg-plan[aria-pressed=true]{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,var(--panel))}
+.dlg-step__num{font-size:10px;letter-spacing:1px;color:var(--teal)}
+.dlg-step__title{font-size:13px;line-height:1.3}
+.dlg-step-body,.dlg-plan-body{animation:dlg-panel .3s ease both}
+.detail-dialog .dlg-result{color:var(--ink);font-size:14px}
+.dlg-result .dlg-kicker{display:inline;margin-right:6px}
+.dlg-case{border:1px solid var(--line);border-radius:18px;padding:18px 20px;background:var(--paper)}
+.detail-dialog .dlg-tags{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.dlg-tags span{font-size:11px;line-height:1.4;padding:4px 10px;border-radius:20px;background:var(--soft);color:var(--muted)}
+.detail-dialog .dlg-metric{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;color:var(--ink);font-size:clamp(34px,6vw,50px);font-weight:550;letter-spacing:-1.5px;line-height:1.05;margin:0 0 6px;font-variant-numeric:tabular-nums}
+.dlg-arrow{font-weight:400;color:var(--teal)}
+.detail-dialog .dlg-metric-label{font-size:14px;margin-bottom:14px}
+.dlg-bars{display:grid;gap:8px;margin-bottom:16px}
+.dlg-bar{display:grid;grid-template-columns:52px 1fr 40px;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
+.dlg-bar i{display:block;height:6px;border-radius:6px;background:color-mix(in srgb,var(--teal) 35%,var(--line));transform-origin:0 50%;width:var(--w);animation:dlg-bar .9s cubic-bezier(.2,.8,.2,1) both}
+.dlg-bar.is-after i{background:var(--teal)}
+.dlg-bar b{font-weight:500;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+@keyframes dlg-bar{from{transform:scaleX(0)}to{transform:none}}
+.detail-dialog .dlg-note{font-size:12px;line-height:1.6;margin:10px 0 0}
+.dlg-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.dlg-plan{padding:14px}
+.dlg-plan__name{font-size:12px;color:var(--muted)}
+.dlg-plan__price{font-size:18px;font-weight:550;font-variant-numeric:tabular-nums}
+.dlg-plan__period{font-size:11px;color:var(--muted)}
+.detail-dialog .dlg-mini{margin:0}
+.detail-dialog .dlg-mini li{font-size:13px;padding:7px 0 7px 18px;border-top:0}
+.detail-dialog .dlg-mini li:before{top:16px}
+.detail-dialog .dialog-bottom{flex:none;padding:16px 28px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
+.detail-dialog .dialog-bottom p{margin:0}
+@media(max-width:640px){
+.detail-dialog{width:calc(100% - 16px);max-height:calc(100dvh - 16px);border-radius:20px}
+.detail-dialog .dialog-shell{max-height:calc(100dvh - 16px)}
+.detail-dialog .dialog-top{padding:14px 16px 0;margin-bottom:10px}
+.dlg-body{padding:0 16px 6px}
+.detail-dialog h2{font-size:25px}
+.detail-dialog .dialog-bottom{padding:12px 16px 16px}
+.detail-dialog .dialog-bottom p{display:none}
+.detail-dialog .dialog-bottom .button{width:100%;justify-content:center}
+.dlg-steps{grid-template-columns:repeat(2,1fr)}
+.dlg-plans{grid-template-columns:1fr}
+.dlg-plan{flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:10px}
+}
+@media(prefers-reduced-motion:reduce){
+.detail-dialog.is-diving,.detail-dialog.is-diving::backdrop,.dlg-body.is-switching,.dlg-panel.is-in,.dlg-step-body,.dlg-plan-body,.detail-dialog .dlg-checks li,.dlg-bar i{animation:none}
+}
+
+/* ===== Правки по отчёту QA (15.10.2026) ===== */
+/* Контраст мелкого текста в окне (светлая тема): акцент и вторичный текст темнее — не ниже 4.5:1 (AA) */
+.detail-dialog{--accent-text:#2b716b;--muted:#62685d}
+:root[data-theme=dark] .detail-dialog{--accent-text:var(--teal);--muted:#a89e8c}
+.detail-dialog .dialog-top .eyebrow,.dlg-kicker,.dlg-step__num{color:var(--accent-text)}
+/* Фокус на вкладках: рамка внутри кнопки — у прокручиваемой полосы вкладок внешняя обрезалась */
+.dlg-tabs [role=tab]:focus-visible{outline:2px solid var(--teal);outline-offset:-4px;border-radius:8px}
+/* Вкладки прилипают к верху прокручиваемой области окна */
+.dlg-tabs{position:sticky;top:0;z-index:1;background:var(--panel)}
+/* «Без анимации» на странице выключает и анимации окна */
+.motion-off .detail-dialog.is-diving,.motion-off .detail-dialog.is-diving::backdrop,.motion-off .dlg-body.is-switching,.motion-off .dlg-panel.is-in,.motion-off .dlg-step-body,.motion-off .dlg-plan-body,.motion-off .detail-dialog .dlg-checks li,.motion-off .dlg-bar i{animation:none}
+/* Низкий экран (телефон боком): окно на всю высоту, без вводного абзаца и подписи — место под содержимое вкладки */
+@media(max-height:520px){
+.detail-dialog{max-height:calc(100dvh - 12px);border-radius:16px}
+.detail-dialog .dialog-shell{max-height:calc(100dvh - 12px)}
+.detail-dialog .dialog-top{padding:10px 18px 0;margin-bottom:6px}
+.dlg-body{padding:0 18px 4px}
+.detail-dialog h2{font-size:22px;margin-bottom:6px}
+.detail-dialog .dlg-lead{display:none}
+.dlg-tabs{margin-bottom:12px}
+.dlg-tabs [role=tab]{min-height:40px;padding:8px 10px}
+.detail-dialog .dialog-bottom{padding:8px 18px 10px}
+.detail-dialog .dialog-bottom p{display:none}
+.detail-dialog .dialog-bottom .button{width:100%;justify-content:center;min-height:44px}
+}

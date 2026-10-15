@@ -9,8 +9,10 @@
   <title>Yakobson V. — Джарвис-гид</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
-  <script>document.documentElement.classList.add('js');</script>
-  <script src="./guide.js" type="module"></script>
+  <!-- тема — до первой отрисовки (без вспышки светлой), блоки текста скрываются до запуска гида -->
+  <script>(function(d){d.classList.add('js');try{if(localStorage.getItem('yakobson-jarvis-theme')==='dark'){d.dataset.theme='dark';document.querySelector('meta[name="theme-color"]').content='#0e0d0b'}}catch(e){}})(document.documentElement);</script>
+  <!-- если модуль не загрузился, текст показывается сразу, без анимации -->
+  <script src="./guide.js" type="module" onerror="document.documentElement.classList.remove('js')"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Перейти к содержанию</a><nav aria-label="Варианты дизайна (демо)" style="background:#000;color:#a89e8c;font:500 13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;padding:6px 16px;display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:center;align-items:center;position:relative;z-index:60"><span>Демо:</span><a href="/yakobsonv-navigator-demo/" style="color:#d9cfbe;text-decoration:underline;text-underline-offset:3px;padding:2px 0">Основной</a><a href="/yakobsonv-navigator-demo/jarvis/" aria-current="page" style="color:#fff;font-weight:600;text-decoration:none;border-bottom:2px solid #d4b896;padding:2px 0">Джарвис-гид</a><a href="/yakobsonv-navigator-demo/ru/" style="color:#d9cfbe;text-decoration:underline;text-underline-offset:3px;padding:2px 0">Навигатор по задачам</a></nav>
@@ -32,31 +34,34 @@
         <svg class="emission-rays" id="connections" preserveAspectRatio="none"></svg>
         <div class="guide" id="guide">
           <div class="guide-halo"></div><div class="emission-core"></div>
-          <svg class="orb" viewBox="0 0 400 400" role="presentation">
-            <defs>
-              <radialGradient id="core-wash"><stop offset="0" stop-color="currentColor" stop-opacity=".17"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
-              <linearGradient id="arc-wash" x1="0" y1="0" x2="1" y2="1"><stop stop-color="currentColor" stop-opacity=".12"/><stop offset=".55" stop-color="currentColor" stop-opacity=".85"/><stop offset="1" stop-color="currentColor" stop-opacity=".12"/></linearGradient>
-            </defs>
-            <circle cx="200" cy="200" r="142" fill="url(#core-wash)"/>
-            <g class="orb-ticks" id="orb-ticks"></g>
-            <g class="orb-spin orbit-outer">
+          <!-- Кольца гида — отдельные слои: их вращает видеокарта (CSS transform), без перерисовки всего SVG -->
+          <div class="orb">
+            <svg class="orb-layer" viewBox="0 0 400 400" aria-hidden="true">
+              <defs>
+                <radialGradient id="core-wash"><stop offset="0" stop-color="currentColor" stop-opacity=".17"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
+                <linearGradient id="arc-wash" x1="0" y1="0" x2="1" y2="1"><stop stop-color="currentColor" stop-opacity=".12"/><stop offset=".55" stop-color="currentColor" stop-opacity=".85"/><stop offset="1" stop-color="currentColor" stop-opacity=".12"/></linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="142" fill="url(#core-wash)"/>
+              <g class="orb-ticks" id="orb-ticks"></g>
+              <circle class="core-track" cx="200" cy="200" r="83"/>
+              <circle class="core-track" cx="200" cy="200" r="72"/>
+              <g class="orb-cross"><path d="M200 99v8m0 186v8M99 200h8m186 0h8"/><circle cx="200" cy="200" r="3" fill="currentColor" stroke="none"/></g>
+            </svg>
+            <svg class="orb-layer orb-spin orbit-outer" viewBox="0 0 400 400" aria-hidden="true">
               <circle cx="200" cy="200" r="177"/>
               <circle cx="200" cy="200" r="170" stroke-dasharray="98 12 3 16 161 80"/>
               <circle class="orb-strong" cx="200" cy="200" r="156" stroke-dasharray="226 410 76 268"/>
               <circle cx="200" cy="200" r="152" stroke-dasharray="4 7"/>
-            </g>
-            <g class="orb-spin orbit-inner">
+            </svg>
+            <svg class="orb-layer orb-spin orbit-inner" viewBox="0 0 400 400" aria-hidden="true">
               <ellipse cx="200" cy="200" rx="148" ry="139" transform="rotate(12 200 200)"/>
               <ellipse cx="200" cy="200" rx="143" ry="152" transform="rotate(48 200 200)"/>
               <ellipse cx="200" cy="200" rx="151" ry="144" transform="rotate(-18 200 200)"/>
               <circle class="orb-strong" cx="200" cy="200" r="145" stroke-dasharray="62 91 119 368 171 100"/>
               <circle cx="200" cy="200" r="117" stroke-dasharray="1 8"/>
-            </g>
-            <circle class="core-track" cx="200" cy="200" r="83"/>
-            <circle class="core-track" cx="200" cy="200" r="72"/>
-            <g class="orb-core" id="orb-core"></g>
-            <g class="orb-cross"><path d="M200 99v8m0 186v8M99 200h8m186 0h8"/><circle cx="200" cy="200" r="3" fill="currentColor" stroke="none"/></g>
-          </svg>
+            </svg>
+            <svg class="orb-layer orb-core-layer" viewBox="0 0 400 400" aria-hidden="true"><g class="orb-core" id="orb-core"></g></svg>
+          </div>
           <div class="guide-caption"><span class="status-dot"></span><span id="guide-caption-text">Джарвис · ваш гид</span></div>
         </div>
       </div>
@@ -149,9 +154,7 @@
   <div class="guide-controls"><span class="journey-position" id="journey-position" aria-hidden="true">01 <span>/ 05</span></span><button type="button" class="motion-toggle" id="motion-toggle" aria-pressed="true"><span class="motion-icon" aria-hidden="true">Ⅱ</span><span class="motion-label">Без анимации</span></button></div>
   <footer class="footer"><a class="brand" href="#hello">yakobsonv<span>.</span></a><span>Джарвис-гид · интерактивный прототип</span><a href="https://yakobsonv.com/" target="_blank" rel="noopener noreferrer">Основной сайт <span aria-hidden="true">↗</span></a></footer>
 
-  <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
-    <div class="dialog-shell"><div class="dialog-top"><span class="eyebrow" id="detail-category"></span><button class="dialog-close icon-button" id="dialog-close" type="button" aria-label="Закрыть подробности">×</button></div><h2 id="detail-title"></h2><p id="detail-description"></p><ul id="detail-list"></ul><div class="dialog-bottom"><p>Объём работ определяем под вашу задачу.</p><button type="button" class="button button-dark" id="dialog-contact">Обсудить задачу <span aria-hidden="true">↗</span></button></div></div>
-  </dialog>
+  <dialog class="detail-dialog" id="detail-dialog"></dialog>
   <noscript><style>.guide-controls,.theme-button,.guide-layer,.detail-link{display:none}</style><div class="noscript-note">Основная информация доступна без JavaScript. Для анимации гида и подробностей включите его.</div></noscript>
 </body>
 </html>

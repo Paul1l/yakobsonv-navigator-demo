@@ -4,13 +4,25 @@ const mix=(a,b,t)=>a+(b-a)*t;
 
 // Arrival/departure are scroll positions. The guide stays at a document point
 // while text unfolds, then travels to the next point as scrolling continues.
-export function createStations(points,viewportHeight,journeyTop=0){
- const duration=clamp(viewportHeight*.26,140,260);
- return points.map((point,index)=>({
+export function createStations(points,viewportHeight,journeyTop=0,maxScroll=Infinity){
+ const duration=clamp(viewportHeight*.36,170,340); // окно появления текста: длиннее — спокойнее вылет блоков
+ const stations=points.map((point,index)=>({
   ...point,index,
   arrival:index===0?0:journeyTop+point.y-viewportHeight*.66,
   departure:index===0?0:journeyTop+point.y-viewportHeight*.66+duration
  }));
+ // Последние разделы могут не успеть раскрыться до конца страницы (планшет в портрете: высокий экран).
+ // Тогда окно раскрытия сдвигается выше, чтобы закончиться не позже максимальной прокрутки.
+ for(let index=stations.length-1;index>0;index--){
+  const station=stations[index],shift=station.departure-maxScroll;
+  if(!(shift>0))break;
+  const previous=stations[index-1];
+  station.departure=Math.max(maxScroll,previous.departure+2);
+  station.arrival=Math.max(station.arrival-shift,previous.departure+1);
+  if(station.arrival>=station.departure)station.arrival=station.departure-1;
+  maxScroll=station.arrival-1;
+ }
+ return stations;
 }
 export function stationProgress(station,scrollY){
  if(station.index===0)return 1;
