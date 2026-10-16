@@ -1,0 +1,1 @@
+import{i as r}from"./tabs.Dt4djtzX.js";r();const e=document.querySelector("[data-dash]");e&&"IntersectionObserver"in window&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&(e.classList.add("is-armed"),new IntersectionObserver(s=>{for(const i of s)i.isIntersecting?e.classList.add("is-in"):e.closest("dialog[open]")||e.classList.remove("is-in")}).observe(e));
